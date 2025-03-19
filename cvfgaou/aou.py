@@ -18,10 +18,10 @@ import statsmodels.api as sm
 # General AoU helpers
 
 
-def load_ancestry():
+def load_ancestry(cdr_version='v8'):
     """Load AoU ancestry table"""
     return pd.read_table(
-        'gs://fc-aou-datasets-controlled/v7/wgs/short_read/snpindel/aux/ancestry/ancestry_preds.tsv',
+        f'gs://fc-aou-datasets-controlled/{cdr_version}/wgs/short_read/snpindel/aux/ancestry/ancestry_preds.tsv',
         storage_options={'requester_pays': True}
     )
 
