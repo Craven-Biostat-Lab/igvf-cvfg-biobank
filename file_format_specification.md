@@ -51,10 +51,10 @@ Columns:
     - Age value corresponding to prevalence estimate
 7. Survival to onset
     - float
-    - Prevalence estimate at age point
+    - Survival to onset estimate at age point
 8. Survival_UI
     - float
-    - Upper boundary of the 95% confidence envelope of the prevalence estimate
+    - Upper boundary of the 95% confidence envelope of the survival estimate
 9. Survival_LI
     - float
-    - Lower boundary of the 95% confidence envelope of the prevalence estimate
+    - Lower boundary of the 95% confidence envelope of the survival estimate
