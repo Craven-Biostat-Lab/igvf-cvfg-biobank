@@ -5,7 +5,7 @@ import hail as hl
 def get_cols_with_variants(
     variant_df, wgs_mt,
     contig_col='Chromosome',
-    pos_col='Genomic_coordinate',
+    pos_col='Genomic_coordinates',
     ref_col='Ref_allele',
     alt_col='Alt_allele',
     reference_genome='GRCh38'
@@ -23,8 +23,8 @@ def get_cols_with_variants(
     intervals = [
         hl.locus_interval(
             contig=contig,
-            start=df[pos_col].min(),
-            end=df[pos_col].max(),
+            start=int(df[pos_col].min()),
+            end=int(df[pos_col].max()),
             includes_start=True,
             includes_end=True,
             reference_genome=reference_genome
