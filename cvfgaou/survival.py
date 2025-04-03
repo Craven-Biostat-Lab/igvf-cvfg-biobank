@@ -1,3 +1,4 @@
+import pandas as pd
 from sksurv.nonparametric import kaplan_meier_estimator
 
 def get_kaplan_meier_estimate(cohort_with_timepoints_df):
