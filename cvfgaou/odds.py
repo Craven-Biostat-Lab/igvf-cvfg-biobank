@@ -2,7 +2,7 @@
 
 import pandas as pd
 import statsmodels.formula.api as smf
-import statsnmodels.api as sm
+import statsmodels.api as sm
 
 def estimate_logOR(exposure_series, cohort_df, alpha=0.05):
     """Estimate log odds ratio given exposure and cohort
