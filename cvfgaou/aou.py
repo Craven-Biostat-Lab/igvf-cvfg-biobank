@@ -16,11 +16,12 @@ class CohortLoader():
         self.ancestry_df = ancestry_df
         self.demo_df = demo_df
         self.data_dir = data_dir
+        self.trichotomize_age = True
     
 
     @cache
     def gene_cohort(self, gene):
-        return pd.concat(
+        result = pd.concat(
             [
                 pd.read_table(
                     f'{self.data_dir}/{cohort}',
@@ -31,3 +32,12 @@ class CohortLoader():
                 for cohort in cohorts
             ]
         ).join(self.ancestry_df).join(self.demo_df)
+        
+        if self.trichotomize_age:
+            result.sex_at_birth.where(
+                result.sex_at_birth.isin(['Male', 'Female']),
+                'Other',
+                inplace=True
+            )
+        
+        return result
