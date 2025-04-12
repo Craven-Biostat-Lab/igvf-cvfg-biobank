@@ -3,7 +3,7 @@
 import hail as hl
 
 def get_filtered_mt(
-    variant_df, wgs_mt, *
+    variant_df, wgs_mt,
     contig_col,
     pos_col,
     ref_col,
@@ -59,20 +59,22 @@ def get_cols_with_variants(
     """
 
     # Get person table
-    return get_filtered_mt(
+    filtered_mt = get_filtered_mt(
         variant_df=variant_df, wgs_mt=wgs_mt,
         contig_col=contig_col,
         pos_col=pos_col,
         ref_col=ref_col,
         alt_col=alt_col,
         reference_genome=reference_genome
-    ).filter_cols(
+    )
+    
+    return filtered_mt.filter_cols(
         hl.agg.any(filtered_mt.GT.is_non_ref())
     ).cols().to_pandas()
 
 
-def get_variant_sets_mt_row(
-    label_dict, variant_df, wgs_mt, *,
+def get_variant_set_mt_row(
+    label_dict, variant_df, wgs_mt,
     contig_col,
     pos_col,
     ref_col,
