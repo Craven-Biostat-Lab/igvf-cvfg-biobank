@@ -27,6 +27,18 @@ Columns:
 8. LogOR_UI
     - float
     - Upper boundary of the 95% confidence interval of the log odds ratio
+9. cases_with_variants
+    - nullable int
+    - Number of cases with variants in the specified class, null when true count is <= 20
+10. cases_without_variants
+    - nullable int
+    - Number of cases with variants in the specified class, null when true count is <= 20
+11. controls_with_variants
+    - nullable int
+    - Number of cases with variants in the specified class, null when true count is <= 20
+12. controls_without_variants
+    - nullable int
+    - Number of cases with variants in the specified class, null when true count is <= 20
 
 ## Prevalence curve files
 

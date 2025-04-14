@@ -33,7 +33,11 @@ def estimate_logOR(exposure_series, cohort_df, alpha=0.05):
         {
             'LogOR': estimate,
             'LogOR_LI': ci[0],
-            'LogOR_UI': ci[1]
+            'LogOR_UI': ci[1],
+            'cases_with_variants': (model_df.exposure & model_df.case).sum(),
+            'controls_with_variants': (model_df.exposure & ~model_df.case).sum(),
+            'cases_without_variants': (~model_df.exposure & model_df.case).sum(),
+            'controls_without_variants': (~model_df.exposure & ~model_df.case).sum()
         },
         index=[0]
     )
