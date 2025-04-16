@@ -13,7 +13,7 @@ def list_blobs(uri: str):
     if not uri.startswith('gs://'):
         raise ValueError(f'Expected URI "{uri}" to start with, "gs://".')
     
-    # The "5" belos is the length of "gs://"
+    # The "5" below is the length of "gs://"
     parts = uri[5:].split('/', maxsplit=1)
 
     # Everything before the first slash should be the bucket
