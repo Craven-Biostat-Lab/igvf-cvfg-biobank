@@ -24,3 +24,7 @@ def list_blobs(uri: str):
 
     # Results will be gs:// URIs
     return [f'gs://{b.bucket.name}/{b.name}' for b in blobs]
+
+def read_text_blob(uri):
+    """Download a blob as text"""
+    return Blob.from_string(uri, storage.Client()).download_as_text()
