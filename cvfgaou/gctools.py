@@ -7,7 +7,7 @@ def blob_exists(uri):
     """Check if a blob at a URI exists."""
     return Blob.from_string(uri, storage.Client()).exists()
 
-def list_blobs(uri: str):
+def list_blobs(uri: str, return_uris=True):
     """List blobs given a gs:// URI."""
 
     if not uri.startswith('gs://'):
@@ -22,8 +22,11 @@ def list_blobs(uri: str):
     # Everything after the bucket will be treated as blob prefix
     blobs = bucket.list_blobs() if len(parts) == 1 else bucket.list_blobs(prefix=parts[1])
 
-    # Results will be gs:// URIs
-    return [f'gs://{b.bucket.name}/{b.name}' for b in blobs]
+    if return_uris:
+        # Results will be gs:// URIs
+        return [f'gs://{b.bucket.name}/{b.name}' for b in blobs]
+    else:
+        return blobs
 
 def read_text_blob(uri):
     """Download a blob as text"""
