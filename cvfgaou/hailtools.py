@@ -115,7 +115,7 @@ def get_detailed_cols_with_variants(
     )
 
     result_df = mt_annotated.filter_cols(
-        hl.agg.any(filtered_mt.GT.is_non_ref())
+        hl.agg.any(mt_annotated.GT.is_non_ref())
     ).cols().to_pandas().set_index('s')
 
     return result_df
