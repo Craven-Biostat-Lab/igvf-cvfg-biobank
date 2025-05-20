@@ -73,6 +73,54 @@ def get_cols_with_variants(
     ).cols().to_pandas()
 
 
+def get_detailed_cols_with_variants(
+    variant_df, wgs_mt,
+    contig_col='Chromosome',
+    pos_col='Genomic_coordinates',
+    ref_col='Ref_allele',
+    alt_col='Alt_allele',
+    reference_genome='GRCh38'
+):
+    """Get annotated set of MatrixTable columns that have calls
+    
+    Given a dataframe describing variants and a MatrixTable with variant rows
+    and sample columns (i.e. like the AoU WGS MT), output the columns that have
+    the specified variants as a dataframe.
+    For each column, also annotate the list of variants from the class that the
+    participant has, and whether any variant hits are homozygous.
+    """
+
+    # Get person table
+    filtered_mt = get_filtered_mt(
+        variant_df=variant_df, wgs_mt=wgs_mt,
+        contig_col=contig_col,
+        pos_col=pos_col,
+        ref_col=ref_col,
+        alt_col=alt_col,
+        reference_genome=reference_genome
+    )
+    
+    mt_annotated = filtered_mt.annotate_cols(
+        variants=hl.agg.filter(
+            filtered_mt.GT.is_non_ref(),
+            hl.agg.collect((
+                filtered_mt.locus.contig,
+                filtered_mt.locus.position,
+                filtered_mt.alleles[0],
+                filtered_mt.alleles[1],
+                filtered_mt.info.AF[0]
+            ))
+        ),
+        homozygous_variants=hl.agg.any(filtered_mt.GT.is_hom_var())
+    )
+
+    result_df = mt_annotated.filter_cols(
+        hl.agg.any(filtered_mt.GT.is_non_ref())
+    ).cols().to_pandas().set_index('s')
+
+    return result_df
+
+
 def get_variant_set_mt_row(
     label_dict, variant_df, wgs_mt,
     contig_col,
