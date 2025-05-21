@@ -103,12 +103,12 @@ def get_detailed_cols_with_variants(
     mt_annotated = filtered_mt.annotate_cols(
         variants=hl.agg.filter(
             filtered_mt.GT.is_non_ref(),
-            hl.agg.collect(hl.struct(
-                contig=filtered_mt.locus.contig,
-                pos=filtered_mt.locus.position,
-                ref=filtered_mt.alleles[0],
-                alt=filtered_mt.alleles[1],
-                af=filtered_mt.info.AF[0]
+            hl.agg.collect((
+                filtered_mt.locus.contig,
+                filtered_mt.locus.position,
+                filtered_mt.alleles[0],
+                filtered_mt.alleles[1],
+                filtered_mt.info.AF[0]
             ))
         ),
         homozygous_variants=hl.agg.any(filtered_mt.GT.is_hom_var())
@@ -117,6 +117,20 @@ def get_detailed_cols_with_variants(
     result_df = mt_annotated.filter_cols(
         hl.agg.any(mt_annotated.GT.is_non_ref())
     ).cols().to_pandas().set_index('s')
+
+    # Convert to dict for downstream compatibility
+    result_df['variants'] = result_df['variants'].apply(
+        lambda l: [
+            {
+                'contig': contig,
+                'pos': pos,
+                'ref': ref,
+                'alt': alt,
+                'af': af
+            }
+            for contig, pos, ref, alt, af in l
+        ]
+    )
 
     return result_df
 
