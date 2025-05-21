@@ -103,13 +103,13 @@ def get_detailed_cols_with_variants(
     mt_annotated = filtered_mt.annotate_cols(
         variants=hl.agg.filter(
             filtered_mt.GT.is_non_ref(),
-            hl.agg.collect(hl.struct(
-                contig=filtered_mt.locus.contig,
-                pos=filtered_mt.locus.position,
-                ref=filtered_mt.alleles[0],
-                alt=filtered_mt.alleles[1],
-                af=filtered_mt.info.AF[0]
-            ))
+            hl.agg.collect({
+                'contig': filtered_mt.locus.contig,
+                'pos': filtered_mt.locus.position,
+                'ref': filtered_mt.alleles[0],
+                'alt': filtered_mt.alleles[1],
+                'af': filtered_mt.info.AF[0]
+            })
         ),
         homozygous_variants=hl.agg.any(filtered_mt.GT.is_hom_var())
     )
