@@ -47,21 +47,21 @@ def estimate_logOR(exposure_series, cohort_df, alpha=0.05, variants_series=None)
     if variants_series is not None:
         # Assemble variant statistics
         # N. variants in cases/controls/both, AF range
-        v_cases = exposure_series.isin(cohort_df[cohort_df['case'] == 1].index)
-        v_controls = exposure_series.isin(cohort_df[cohort_df['case'] == 0].index)
-        result_dict['variants_per_case'] = v_cases.apply(len).mean()
-        result_dict['variants_per_control'] = v_controls.apply(len).mean()
+        case_vs = variants_series[exposure_series.isin(cohort_df[cohort_df['case'] == 1].index)]
+        control_vs = variants_series[exposure_series.isin(cohort_df[cohort_df['case'] == 0].index)]
+        result_dict['variants_per_case'] = case_vs.apply(len).mean()
+        result_dict['variants_per_control'] = control_vs.apply(len).mean()
         # Make case, control, and shared variant sets.
         # We don't use sets for this because dicts aren't hashable
         case_variants = []
         control_variants = []
         total_variants = []
-        for variant in v_cases.sum():
+        for variant in case_vs.sum():
             if variant not in case_variants:
                 case_variants.append(variant)
             if variant not in total_variants:
                 total_variants.append(variant)
-        for variant in v_controls.sum():
+        for variant in control_vs.sum():
             if variant not in control_variants:
                 control_variants.append(variant)
             if variant not in total_variants:
