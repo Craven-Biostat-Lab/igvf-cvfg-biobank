@@ -56,12 +56,12 @@ def estimate_logOR(exposure_series, cohort_df, alpha=0.05, variants_series=None)
         case_variants = []
         control_variants = []
         total_variants = []
-        for variant in case_vs.sum():
+        for variant in case_vs.apply(list).sum():
             if variant not in case_variants:
                 case_variants.append(variant)
             if variant not in total_variants:
                 total_variants.append(variant)
-        for variant in control_vs.sum():
+        for variant in control_vs.apply(list).sum():
             if variant not in control_variants:
                 control_variants.append(variant)
             if variant not in total_variants:
