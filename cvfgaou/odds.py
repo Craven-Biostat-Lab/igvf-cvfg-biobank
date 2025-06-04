@@ -72,7 +72,7 @@ def estimate_logOR(exposure_series, cohort_df, alpha=0.05, variants_series=None)
         control_only_variants = [v for v in control_variants if v not in case_variants]
         overlap_variants = [
             v for v in total_variants
-            if (v not in case_variants) and (v not in control_variants)]
+            if (v in case_variants) and (v in control_variants)]
         
         result_dict['case_variant_min_af'] = min(v['af'] for v in case_variants)
         result_dict['control_variant_min_af'] = min(v['af'] for v in control_variants)
