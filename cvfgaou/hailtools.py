@@ -1,5 +1,7 @@
 """Helper utilities for working with Hail"""
 
+from cvfgaou.notation import var_str
+
 import hail as hl
 
 def get_filtered_mt(
@@ -88,6 +90,10 @@ def get_detailed_cols_with_variants(
     the specified variants as a dataframe.
     For each column, also annotate the list of variants from the class that the
     participant has, and whether any variant hits are homozygous.
+    Additionally, return a dictionary specifying the allele frequency of each
+    variant.
+
+    Returns result_df, af_map
     """
 
     # Get person table
@@ -118,21 +124,21 @@ def get_detailed_cols_with_variants(
         hl.agg.any(mt_annotated.GT.is_non_ref())
     ).cols().to_pandas().set_index('s')
 
-    # Convert to dict for downstream compatibility
+    # Convert to string for downstream compatibility
+    af_map = {
+        var_str(contig, pos, ref, alt): af
+        for variants in result_df['variants']
+        for contig, pos, ref, alt, af in variants
+    }
+
     result_df['variants'] = result_df['variants'].apply(
         lambda l: [
-            {
-                'contig': contig,
-                'pos': pos,
-                'ref': ref,
-                'alt': alt,
-                'af': af
-            }
-            for contig, pos, ref, alt, af in l
+            var_str(contig, pos, ref, alt)
+            for contig, pos, ref, alt, _ in l
         ]
     )
 
-    return result_df
+    return result_df, af_map
 
 
 def get_variant_set_mt_row(
