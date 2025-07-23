@@ -1,6 +1,6 @@
 """Helper utilities for working with Hail"""
 
-from cvfgaou.notation import var_str
+from cvfgaou.notation import var_str, var_col
 
 import hail as hl
 import logging
@@ -189,7 +189,7 @@ def get_exposure_package(
         log.warning("Empty variant set given")
         return None, {}, None
     
-    clinvar_df = notation.var_col(
+    clinvar_df = var_col(
         variant_df,
         contig_col,
         pos_col,
