@@ -3,6 +3,9 @@
 from cvfgaou.notation import var_str
 
 import hail as hl
+import logging
+
+log = logging.getLogger(__name__)
 
 def get_filtered_mt(
     variant_df, wgs_mt,
@@ -169,3 +172,45 @@ def get_variant_set_mt_row(
         key_rows_by(*label_dict.keys())
     )
  
+
+def get_exposure_package(
+    variant_df,
+    wgs_mt,
+    clinvar_bins_df,
+    contig_col='Chromosome',
+    pos_col='Genomic_coordinates',
+    ref_col='Ref_allele',
+    alt_col='Alt_allele',
+    reference_genome='GRCh38',
+    metadata_dict=None
+):
+
+    if variant_df.empty:
+        log.warning("Empty variant set given")
+        return None, {}, None
+    
+    clinvar_df = notation.var_col(
+        variant_df,
+        contig_col,
+        pos_col,
+        ref_col,
+        alt_col
+    ).to_frame(name='Variant').merge(
+        clinvar_bins_df,
+        on='Variant',
+        how='left'
+    )
+    clinvar_df['Clinvar significance'].fillna('Other / not in ClinVar', inplace=True)
+
+    exposure_df, af_map = get_detailed_cols_with_variants(
+        variant_df, wgs_mt, contig_col, pos_col, ref_col, alt_col, reference_genome
+    )
+
+    exposure_df.reset_index(names='person_id', inplace=True)
+
+    # Attach metadata to frames
+    if metadata_dict is not None:
+        exposure_df.assign(**metadata_dict)
+        clinvar_df.assign(**metadata_dict)
+
+    return exposure_df, af_map, clinvar_df
