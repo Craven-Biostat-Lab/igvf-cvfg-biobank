@@ -210,7 +210,7 @@ def get_exposure_package(
 
     # Attach metadata to frames
     if metadata_dict is not None:
-        exposure_df.assign(**metadata_dict)
-        clinvar_df.assign(**metadata_dict)
+        exposure_df=exposure_df.assign(**metadata_dict)
+        clinvar_df=clinvar_df.assign(**metadata_dict)
 
     return exposure_df, af_map, clinvar_df
