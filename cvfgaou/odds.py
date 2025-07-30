@@ -106,6 +106,6 @@ def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, c
         result_dict[f'Class ClinVar {clinvar_class}'] = count
     
     for clinvar_class, count in clinvar_df.loc[clinvar_df['Cohort'], 'ClinVar'].value_counts().items():
-        result_dict[f'Class ClinVar {clinvar_class}'] = count
+        result_dict[f'Cohort ClinVar {clinvar_class}'] = count
     
     return result_dict
