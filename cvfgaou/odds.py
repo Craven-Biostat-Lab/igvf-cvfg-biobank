@@ -87,10 +87,10 @@ def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, c
     case_only_variants = case_variants - overlap_variants
     control_only_variants = control_variants - overlap_variants
     
-    result_dict['case_variant_min_af'] = min(af_map(v) for v in case_variants) if case_variants else None
-    result_dict['control_variant_min_af'] = min(af_map(v) for v in control_variants) if control_variants else None
-    result_dict['case_variant_max_af'] = max(af_map(v) for v in case_variants) if case_variants else None
-    result_dict['control_variant_max_af'] = max(af_map(v) for v in control_variants) if control_variants else None
+    result_dict['case_variant_min_af'] = min(af_map[v] for v in case_variants) if case_variants else None
+    result_dict['control_variant_min_af'] = min(af_map[v] for v in control_variants) if control_variants else None
+    result_dict['case_variant_max_af'] = max(af_map[v] for v in case_variants) if case_variants else None
+    result_dict['control_variant_max_af'] = max(af_map[v] for v in control_variants) if control_variants else None
     result_dict['case_only_variant_count'] = len(case_only_variants)
     result_dict['control_only_variant_count'] = len(control_only_variants)
     result_dict['overlap_variant_count'] = len(overlap_variants)
