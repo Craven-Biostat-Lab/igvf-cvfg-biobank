@@ -12,7 +12,7 @@ SOE_TABLE = (
     (8, 'very strong'),
     (4, 'strong'),
     (3, 'moderate+'),
-    (2, 'modetate'),
+    (2, 'moderate'),
     (1, 'supporting')
 )
 
