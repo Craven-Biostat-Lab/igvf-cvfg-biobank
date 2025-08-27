@@ -1,5 +1,8 @@
-"""Helper functions to maintain consistent entity notation."""
+"""Helper constants and functions to maintain consistent entity notation."""
 
+# Unicode character codes
+GEQ_CHAR = '\u2265'
+LEQ_CHAR = '\u2264'
 
 def var_str(contig, pos, ref, alt):
     """Compose the variant ID string contig:pos:ref>alt"""
