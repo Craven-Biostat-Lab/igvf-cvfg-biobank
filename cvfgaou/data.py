@@ -47,3 +47,19 @@ project_genes = [
     'XRCC2'
 ]
 
+
+# Bergquist et al. thresholds 10.1016/j.gim.2025.101402
+
+# AlphaMissense 
+
+# Benign Moderate+: <= 0.070
+# Benign Moderate: <= 0.099
+# Benign Supporting: <= 0.169
+# Pathogenic Supporting: >= 0.792
+# Pathogenic Moderate: >= 0.906
+# Pathogenic Moderate+: >= 0.972
+# Pathogenic Strong: >= 0.990
+
+# MutPred2
+
+# REVEL

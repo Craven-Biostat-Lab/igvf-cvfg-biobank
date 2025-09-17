@@ -2,6 +2,32 @@
 
 import pandas as pd
 
+# Mapping of AA names
+AA_NAMES = {
+    'A': 'Ala',
+    'R': 'Arg',
+    'N': 'Asn',
+    'D': 'Asp',
+    'C': 'Cys',
+    'Q': 'Gln',
+    'E': 'Glu',
+    'G': 'Gly',
+    'H': 'His',
+    'I': 'Ile',
+    'L': 'Leu',
+    'K': 'Lys',
+    'M': 'Met',
+    'F': 'Phe',
+    'P': 'Pro',
+    'S': 'Ser',
+    'T': 'Thr',
+    'W': 'Trp',
+    'Y': 'Tyr',
+    'V': 'Val',
+    'U': 'Sec',
+    'O': 'Pyl'
+}
+
 # Unicode character codes
 GEQ_CHAR = '\u2265'
 LEQ_CHAR = '\u2264'
