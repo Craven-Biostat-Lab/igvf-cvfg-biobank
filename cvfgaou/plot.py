@@ -18,6 +18,35 @@ cohort_colors = {
     'controls': '#1D7AAB'
 }
 
+points_colors = {
+    '≤ -16': '#176082',
+    '≤ -12': '#176082',
+    '≤ -11': '#1D7AAB',
+    '≤ -10': '#4B91A6',
+    '≤ -9': '#63A1C4',
+    '≤ -8': '#7AB5D1',
+    '≤ -7': '#99C8DC',
+    '≤ -6': '#B8DCE8',
+    '≤ -5': '#D0E8F0',
+    '≤ -4': '#E4F1F6',
+    '≤ -3': '#EDF6FA',
+    '≤ -2': '#F4F9FC',
+    '≤ -1': '#F9FCFE',
+    '≥ +1': '#F7E4E7',
+    '≥ +2': '#F0D0D5',
+    '≥ +3': '#E6B1B8',
+    '≥ +4': '#D68F99',
+    '≥ +5': '#CA7682',
+    '≥ +6': '#B85C6B',
+    '≥ +7': '#A84957',
+    '≥ +8': '#943744',
+    '≥ +9': '#7F2936',
+    '≥ +10': '#671B28',
+    '≥ +11': '#520F1C',
+    '≥ +12': '#3A060D',
+    '≥ +16': '#3A060D'
+}
+
 def grouped_bar_plot(ax, groups, y_values, bar_colors=None, xlabel=None, log_scale=False, **style_args):
     # Grouped bar positioning:
     # If we have n bars in a group, we want the width of each bar to be
@@ -211,3 +240,55 @@ def populate_classifier_row(subfigs, row, classifier, plot_df):
     #    labels += ax_labels
     #
     #subfigs[row].legend(handles, labels, loc='outside right')
+
+def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
+
+    if combined_fig is None:
+        combined_fig = plt.figure(
+            layout='constrained',
+            figsize=(15, 10)
+        )
+
+    plot_df = or_estimates_df[
+        (or_estimates_df.cases_with_variants > 0)
+    ]
+
+    col_dfs = [
+        (col_id, col_df)
+        for col_id, col_df in plot_df.groupby(cols)
+        if not col_df.empty
+    ]
+
+    axs = combined_fig.subplots(
+        1, #combined_or_estimates_df['Gene'].nunique(),
+        len(col_dfs),
+        sharex = True,
+        sharey = True
+    )
+
+    class_tick_list = plot_df.Classification.cat.categories.to_list()
+    class_tick_map = {val: ind for ind, val in enumerate(class_tick_list)}
+
+    for col, (gene, col_df) in enumerate(col_dfs):
+        axs[col].errorbar(
+            x = col_df.LogOR,
+            y = col_df.Classification.map(class_tick_map),
+            xerr=np.absolute(col_df[['LogOR_LI', 'LogOR_UI']].to_numpy() - col_df[['LogOR']].to_numpy()).transpose(),
+            fmt='.',
+            capsize=4,
+            capthick=1.5,
+            elinewidth=1,
+            color='black'
+        )
+        axs[col].axvline(x=0, color='black', linestyle=':')
+        axs[col].set_yticks(range(len(class_tick_list)), class_tick_list)
+        axs[col].set_title(gene)
+
+        # Highlight rows with significant ORs
+        for classification in col_df.loc[col_df.LogOR_LI > 0, 'Classification']:
+            y_val = class_tick_map[classification]
+            axs[col].axhspan(y_val-0.45, y_val+0.45, color=points_colors(classification))
+            
+        axs[col].set_frame_on(False)
+
+    return combined_fig
