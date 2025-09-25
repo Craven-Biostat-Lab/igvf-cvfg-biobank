@@ -287,8 +287,8 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
         # Highlight rows with significant ORs
         for classification in col_df.loc[col_df.LogOR_LI > 0, 'Classification']:
             y_val = class_tick_map[classification]
-            axs[col].axhspan(y_val-0.45, y_val+0.45, color=points_colors(classification))
-            
+            axs[col].axhspan(y_val-0.45, y_val+0.45, color=points_colors[classification])
+
         axs[col].set_frame_on(False)
 
     return combined_fig
