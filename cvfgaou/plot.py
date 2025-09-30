@@ -47,6 +47,8 @@ points_colors = {
     '≥ +16': '#3A060D'
 }
 
+# Plotters
+
 def grouped_bar_plot(ax, groups, y_values, bar_colors=None, xlabel=None, log_scale=False, **style_args):
     # Grouped bar positioning:
     # If we have n bars in a group, we want the width of each bar to be
@@ -270,15 +272,30 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
     class_tick_map = {val: ind for ind, val in enumerate(class_tick_list)}
 
     for col, (gene, col_df) in enumerate(col_dfs):
+
+        # Figure out which bars will get a dark background
+        erbarcolors=(
+            (
+                col_df.LogOR_LI > 0
+            ) & (
+                col_df['Classification']
+                .map(points_colors)
+                .map(colors.to_rgb)
+                .map(colors.hsv_to_rgb)
+                .apply(lambda c: c[2] < 0.7)
+            )
+        ).map({True: 'white', False:'black'})
+
+        ebarcolors='black'
         axs[col].errorbar(
-            x = col_df.LogOR,
-            y = col_df.Classification.map(class_tick_map),
+            x=col_df.LogOR,
+            y=col_df.Classification.map(class_tick_map),
             xerr=np.absolute(col_df[['LogOR_LI', 'LogOR_UI']].to_numpy() - col_df[['LogOR']].to_numpy()).transpose(),
             fmt='.',
             capsize=4,
             capthick=1.5,
             elinewidth=1,
-            color='black'
+            color=ebarcolors
         )
         axs[col].axvline(x=0, color='black', linestyle=':')
         axs[col].set_yticks(range(len(class_tick_list)), class_tick_list)
