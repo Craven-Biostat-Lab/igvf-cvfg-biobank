@@ -243,7 +243,14 @@ def populate_classifier_row(subfigs, row, classifier, plot_df):
     #
     #subfigs[row].legend(handles, labels, loc='outside right')
 
-def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
+def summary_fig(
+    or_estimates_df,
+    combined_fig = None,
+    cols='Gene',
+    saturation_threshold=0.7,
+    frame_on=False,
+    left_ticks=False
+):
 
     if combined_fig is None:
         combined_fig = plt.figure(
@@ -282,7 +289,7 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
                 .map(points_colors)
                 .map(colors.to_rgb)
                 .map(colors.rgb_to_hsv)
-                .apply(lambda c: c[2] < 0.7)
+                .apply(lambda c: c[2] < saturation_threshold)
             )
         )
         
@@ -313,6 +320,7 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
             y_val = class_tick_map[classification]
             axs[col].axhspan(y_val-0.45, y_val+0.45, color=points_colors[classification])
 
-        axs[col].set_frame_on(False)
+        axs[col].set_frame_on(frame_on)
+        axs[col].tick_params(left=left_ticks)
 
     return combined_fig
