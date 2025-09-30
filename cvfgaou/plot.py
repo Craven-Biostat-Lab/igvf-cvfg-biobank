@@ -286,7 +286,6 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
             )
         ).map({True: 'white', False:'black'})
 
-        ebarcolors='black'
         axs[col].errorbar(
             x=col_df.LogOR,
             y=col_df.Classification.map(class_tick_map),
@@ -295,7 +294,7 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
             capsize=4,
             capthick=1.5,
             elinewidth=1,
-            color=ebarcolors
+            color=erbarcolors
         )
         axs[col].axvline(x=0, color='black', linestyle=':')
         axs[col].set_yticks(range(len(class_tick_list)), class_tick_list)
