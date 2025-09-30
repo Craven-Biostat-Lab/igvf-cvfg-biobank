@@ -274,7 +274,7 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
     for col, (gene, col_df) in enumerate(col_dfs):
 
         # Figure out which bars will get a dark background
-        erbarcolors=(
+        dark_rows=(
             (
                 col_df.LogOR_LI > 0
             ) & (
@@ -284,18 +284,26 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
                 .map(colors.hsv_to_rgb)
                 .apply(lambda c: c[2] < 0.7)
             )
-        ).map({True: 'white', False:'black'})
-
-        axs[col].errorbar(
-            x=col_df.LogOR,
-            y=col_df.Classification.map(class_tick_map),
-            xerr=np.absolute(col_df[['LogOR_LI', 'LogOR_UI']].to_numpy() - col_df[['LogOR']].to_numpy()).transpose(),
-            fmt='.',
-            capsize=4,
-            capthick=1.5,
-            elinewidth=1,
-            color=erbarcolors
         )
+        
+        # Need to draw separately for dark and light background rows
+        for dark in True, False:
+            subset_df = col_df[dark_rows == dark]
+            color = 'white' if dark else 'black'
+            axs[col].errorbar(
+                x=subset_df.LogOR,
+                y=subset_df.Classification.map(class_tick_map),
+                xerr=np.absolute(
+                    subset_df[['LogOR_LI', 'LogOR_UI']].to_numpy()
+                    - subset_df[['LogOR']].to_numpy()
+                ).transpose(),
+                fmt='.',
+                capsize=4,
+                capthick=1.5,
+                elinewidth=1,
+                color=color
+            )
+
         axs[col].axvline(x=0, color='black', linestyle=':')
         axs[col].set_yticks(range(len(class_tick_list)), class_tick_list)
         axs[col].set_title(gene)
