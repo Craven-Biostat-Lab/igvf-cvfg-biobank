@@ -281,7 +281,7 @@ def summary_fig(or_estimates_df, combined_fig = None, cols='Gene'):
                 col_df['Classification']
                 .map(points_colors)
                 .map(colors.to_rgb)
-                .map(colors.hsv_to_rgb)
+                .map(colors.rgb_to_hsv)
                 .apply(lambda c: c[2] < 0.7)
             )
         )
