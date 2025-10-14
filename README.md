@@ -1,2 +1,2 @@
 # igvf-cvfg-biobank
-Source code for the Coding Variants Focus Group Biobank Validation anlyses
+Python package for performing biobank validation of variant classifications in the All of Us Workbench.
