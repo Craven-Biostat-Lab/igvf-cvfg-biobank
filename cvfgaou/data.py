@@ -120,7 +120,7 @@ gene_phenotypes = {
     'G6PD': (
         {'deficiency of glucose-6-phosphate dehydrogenase'},
         {'deficiency of glucose-6-phosphate dehydrogenase'},
-        'X-linked dominant'
+        'X-linked' # Abbye: X-linked dominant
     ),
     'GCK': (
         {'MODY'},
@@ -157,7 +157,7 @@ gene_phenotypes = {
             'endometrial cancer'
         },
         {'cancer'},
-        'autosomal dominant'
+        'autosomal dominant' # AR for mismatch repair- maybe we should also consider AR analysis
     ),
     #'NDUFAF6',
     'OTC': (
