@@ -57,7 +57,7 @@ gene_phenotypes = {
             'renal cancer',
             'basal cell carcinoma',
             'intracranial meningioma',
-            'choloangiocarcinoma of the billiary tract'
+            'cholangiocarcinoma of the biliary tract'
         },
         {'cancer'},
         'autosomal dominant'
