@@ -21,16 +21,29 @@ class CohortLoader():
 
     @cache
     def gene_cohort(self, gene):
+
+        case_dfs = [
+            pd.read_table(
+                f'{self.data_dir}/{case_cohort}',
+                usecols=['person_id'],
+                index_col='person_id'
+            ).assign(case=1)
+            for case_cohort in self.gene_cohort_map[gene][0]
+        ]
+
+        controls = None
+        for control_cohort in self.gene_cohort_map[gene][1]:
+            df = pd.read_table(f'{self.data_dir}/{control_cohort}',
+                usecols=['person_id'],
+                index_col='person_id'
+            )
+            if controls is None:
+                controls = df
+            else:
+                controls = controls.join(df, how='inner')
+        
         result = pd.concat(
-            [
-                pd.read_table(
-                    f'{self.data_dir}/{cohort}',
-                    usecols=['person_id'],
-                    index_col='person_id'
-                ).assign(case=case)
-                for case, cohorts in zip([1,0], self.gene_cohort_map[gene])
-                for cohort in cohorts
-            ]
+            case_dfs + [controls.assign(case=0)]
         ).join(self.ancestry_df).join(self.demo_df)
         
         if self.trichotomize_age:
