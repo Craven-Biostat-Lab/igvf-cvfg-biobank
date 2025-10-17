@@ -286,6 +286,7 @@ def summary_fig(
                 col_df.LogOR_LI > 0
             ) & (
                 col_df['Classification']
+                .astype(str) # The categorical wrapper breaks things, so convert to str
                 .map(points_colors)
                 .map(colors.to_rgb)
                 .map(colors.rgb_to_hsv)
