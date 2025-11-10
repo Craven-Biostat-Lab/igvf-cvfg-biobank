@@ -249,7 +249,8 @@ def summary_fig(
     cols='Gene',
     saturation_threshold=0.7,
     frame_on=False,
-    left_ticks=False
+    left_ticks=False,
+    title_rotation=0
 ):
 
     if combined_fig is None:
@@ -314,7 +315,7 @@ def summary_fig(
 
         axs[col].axvline(x=0, color='black', linestyle=':')
         axs[col].set_yticks(range(len(class_tick_list)), class_tick_list)
-        axs[col].set_title(gene)
+        axs[col].set_title(gene, rotation=title_rotation)
 
         # Highlight rows with significant ORs
         for classification in col_df.loc[col_df.LogOR_LI > 0, 'Classification']:
