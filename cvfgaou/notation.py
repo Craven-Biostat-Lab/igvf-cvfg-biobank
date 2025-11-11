@@ -50,6 +50,52 @@ DOE_TABLE = (
     (LEQ_CHAR, '-', 'BP4', 'Benign', pd.Series.le, pd.Series.ge)
 )
 
+evidence_phrases_to_points = {
+    f'{criterion} {strength.title()}'.lower(): points * sign
+    for criterion, sign in (('PP3', 1), ('BP4', -1))
+    for points, strength in SOE_TABLE
+}
+
+def evidence_meets_strength(evidence, reference, strict=False):
+    """Compare an evidence label to a reference point
+
+    `evidence` and `reference` are reresentations of directed evidence
+    strength; these can be strings such as "PP3 very strong", "+8" or
+    integers.
+    Returns true if evidence meets the direction of reference and is at
+    least as strong, i.e. (+8, +4) and (-8, -4) should return True, and
+    (+8, -4) should return False.
+    If `strict` is True, raises a ValueError if `evidence` cannot be
+    parsed, but if `strict` is False, failure to parse `evidence` will
+    simply return False for all valid values of `reference`.
+    """
+
+    if isinstance(reference, str):
+        ref_lookup = evidence_phrases_to_points.get(reference.replace('_', ' ').lower())
+        if ref_lookup is None:
+            try:
+                reference = int(reference)
+            except:
+                raise ValueError(f'Could not parse {reference} as an evidence strength.')
+        else:
+            reference = ref_lookup
+    
+    if reference == 0: raise ValueError('Reference evidence strength cannot be 0')
+
+    if isinstance(evidence, str):
+        ev_lookup = evidence_phrases_to_points.get(evidence.replace('_', ' ').lower())
+        if ev_lookup is None:
+            try:
+                evidence = int(evidence)
+            except:
+                if strict:
+                    raise ValueError(f'Could not parse {evidence} as an evidence strength')
+                else:
+                    return False
+    
+    return evidence >= reference if reference > 0 else evidence <= reference
+
+
 def var_str(contig, pos, ref, alt):
     """Compose the variant ID string contig:pos:ref>alt"""
     return f'{contig}:{pos}:{ref}>{alt}'
