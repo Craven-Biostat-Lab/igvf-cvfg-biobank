@@ -92,6 +92,8 @@ def evidence_meets_strength(evidence, reference, strict=False):
                     raise ValueError(f'Could not parse {evidence} as an evidence strength')
                 else:
                     return False
+        else:
+            evidence = ev_lookup
     
     return evidence >= reference if reference > 0 else evidence <= reference
 
