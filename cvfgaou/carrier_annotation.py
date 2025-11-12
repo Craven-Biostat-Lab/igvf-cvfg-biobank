@@ -9,17 +9,19 @@ from cvfgaou import hailtools, gctools, notation
 
 log = logging.getLogger(__name__)
 
-class CarrierAnnotatorAlphaMissense:
+class CarrierAnnotatorVEP:
     """Class for performing carrier status annotations for AlphaMissense"""
 
     def __init__(
         self,
         variant_level_calibrations_df,
-        am_gene_thresholds_df,
+        gene_thresholds_df,
         output_location,
         wgs_mt,
         clinvar_bins_df,
         vat_loader, # Function that takes a gene and returns a dataframe
+        variant_table_col_map,
+        predictor_name,
         splice_ai_filter_max=np.inf,
         af_filter_max=np.inf,
         progress_tracker=None
@@ -36,9 +38,14 @@ class CarrierAnnotatorAlphaMissense:
 
         self.progress_tracker = (lambda x: x) if progress_tracker is None else progress_tracker
 
+        self.predictor_name = predictor_name
+        self.outfile_prefix = predictor_name.lower()
+
+        self.cols = variant_table_col_map
+
         # Load gene-specific Calibration table
         # This table is indexed by gene
-        self.am_gene_thresholds_df = am_gene_thresholds_df
+        self.gene_thresholds_df = gene_thresholds_df
 
         # Mapping from our thresholds to thresholds used in the table and the respective comparison direction
         self.gs_threshold_map = {
@@ -51,9 +58,9 @@ class CarrierAnnotatorAlphaMissense:
 
         for gene, per_gene_df in self.progress_tracker(self.variant_level_calibrations_df.groupby('gene_symbol')):
             
-            exposures_file = f'{self.output_location}/exposures/alphamissense_{gene}.parquet'
-            clinvar_file = f'{self.output_location}/clinvar_maps/alphamissense_{gene}.parquet'
-            af_file = f'{self.output_location}/af_maps/alphamissense_{gene}.parquet'
+            exposures_file = f'{self.output_location}/exposures/{self.outfile_prefix}_{gene}.parquet'
+            clinvar_file = f'{self.output_location}/clinvar_maps/{self.outfile_prefix}_{gene}.parquet'
+            af_file = f'{self.output_location}/af_maps/{self.outfile_prefix}_{gene}.parquet'
             
             if gctools.blob_exists(exposures_file):
                 log.info(f'Skipping {gene} because {exposures_file} exists.')
@@ -73,7 +80,12 @@ class CarrierAnnotatorAlphaMissense:
             per_gene_df = per_gene_df.merge(
                 gene_vat[['contig', 'position', 'ref_allele', 'alt_allele']].drop_duplicates(),
                 how='inner',
-                left_on=['#CHROM', 'POS', 'REF', 'ALT'],
+                left_on=[
+                    self.cols['contig'],
+                    self.cols['position'],
+                    self.cols['ref_allele'],
+                    self.cols['alt_allele']
+                ],
                 right_on=['contig', 'position', 'ref_allele', 'alt_allele']
             )
             
@@ -100,15 +112,15 @@ class CarrierAnnotatorAlphaMissense:
             )
 
             # Gene-specific thresholds
-            if gene in self.am_gene_thresholds_df.index:
+            if gene in self.gene_thresholds_df.index:
                 variant_classes = chain(
                     variant_classes,
                     (
                         ('Calibrated (gene-specific)', c, per_gene_df[selection])
                         for c, selection in (
-                            (classification, compare(per_gene_df['am_pathogenicity'], threshold))
+                            (classification, compare(per_gene_df[self.cols['score']], threshold))
                             for classification, (label, compare) in self.gs_threshold_map.items()
-                            for threshold in (self.am_gene_thresholds_df.loc[gene, label], )
+                            for threshold in (self.gene_thresholds_df.loc[gene, label], )
                             if not np.isnan(threshold)
                         )
                     )
@@ -123,12 +135,12 @@ class CarrierAnnotatorAlphaMissense:
                         variant_df,
                         self.wgs_mt,
                         self.clinvar_bins_df,
-                        contig_col='#CHROM',
-                        pos_col='POS',
-                        ref_col='REF',
-                        alt_col='ALT',
+                        contig_col=self.cols['contig'],
+                        pos_col=self.cols['position'],
+                        ref_col=self.cols['ref_allele'],
+                        alt_col=self.cols['alt_allele'],
                         metadata_dict = {
-                            'Dataset': 'AlphaMissense',
+                            'Dataset': self.predictor_name,
                             'Gene': gene,
                             'Classifier': classifier,
                             'Classification': classification,
@@ -152,3 +164,77 @@ class CarrierAnnotatorAlphaMissense:
                 pd.Series(joint_af_map).to_frame(name='AF').to_parquet(af_file)
             if gene_result_dfs:
                 pd.concat(gene_result_dfs, ignore_index=True).to_parquet(exposures_file, index=False)
+
+
+class CarrierAnnotatorAlphaMissense(CarrierAnnotatorVEP):
+    """Class for performing carrier status annotations for AlphaMissense"""
+
+    def __init__(
+        self,
+        variant_level_calibrations_df,
+        gene_thresholds_df,
+        output_location,
+        wgs_mt,
+        clinvar_bins_df,
+        vat_loader,
+        splice_ai_filter_max=np.inf,
+        af_filter_max=np.inf,
+        progress_tracker=None
+    ):
+        super().__init__(
+            variant_level_calibrations_df,
+            gene_thresholds_df,
+            output_location,
+            wgs_mt,
+            clinvar_bins_df,
+            vat_loader,
+            {
+                'gene': 'gene_symbol',
+                'contig': '#CHROM',
+                'position': 'POS',
+                'ref_allele': 'REF',
+                'alt_allele': 'ALT',
+                'score': 'am_pathogenicity'
+            },
+            'AlphaMissense',
+            splice_ai_filter_max,
+            af_filter_max,
+            progress_tracker
+        )
+
+
+class CarrierAnnotatorREVEL(CarrierAnnotatorVEP):
+    """Class for performing carrier status annotations for REVEL"""
+
+    def __init__(
+        self,
+        variant_level_calibrations_df,
+        gene_thresholds_df,
+        output_location,
+        wgs_mt,
+        clinvar_bins_df,
+        vat_loader,
+        splice_ai_filter_max=np.inf,
+        af_filter_max=np.inf,
+        progress_tracker=None
+    ):
+        super().__init__(
+            variant_level_calibrations_df,
+            gene_thresholds_df,
+            output_location,
+            wgs_mt,
+            clinvar_bins_df,
+            vat_loader,
+            {
+                'gene': 'gene_symbol',
+                'contig': '#CHROM',
+                'position': 'POS',
+                'ref_allele': 'REF',
+                'alt_allele': 'ALT',
+                'score': 'am_pathogenicity'
+            },
+            'AlphaMissense',
+            splice_ai_filter_max,
+            af_filter_max,
+            progress_tracker
+        )
