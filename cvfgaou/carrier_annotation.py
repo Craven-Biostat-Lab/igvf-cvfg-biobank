@@ -56,7 +56,7 @@ class CarrierAnnotatorVEP:
 
     def build_exposure_package(self):
 
-        for gene, per_gene_df in self.progress_tracker(self.variant_level_calibrations_df.groupby('gene_symbol')):
+        for gene, per_gene_df in self.progress_tracker(self.variant_level_calibrations_df.groupby(self.cols['gene'])):
             
             exposures_file = f'{self.output_location}/exposures/{self.outfile_prefix}_{gene}.parquet'
             clinvar_file = f'{self.output_location}/clinvar_maps/{self.outfile_prefix}_{gene}.parquet'
@@ -231,9 +231,9 @@ class CarrierAnnotatorREVEL(CarrierAnnotatorVEP):
                 'position': 'POS',
                 'ref_allele': 'REF',
                 'alt_allele': 'ALT',
-                'score': 'am_pathogenicity'
+                'score': 'revel'
             },
-            'AlphaMissense',
+            'REVEL',
             splice_ai_filter_max,
             af_filter_max,
             progress_tracker
