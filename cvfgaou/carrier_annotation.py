@@ -231,7 +231,7 @@ class CarrierAnnotatorREVEL(CarrierAnnotatorVEP):
                 'position': 'POS',
                 'ref_allele': 'REF',
                 'alt_allele': 'ALT',
-                'score': 'revel'
+                'score': 'REVEL'
             },
             'REVEL',
             splice_ai_filter_max,
