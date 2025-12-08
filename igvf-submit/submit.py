@@ -14,23 +14,17 @@ common_properties = {
 
 payloads = [
     {
-        Connection.PROFILE_KEY: 'prediction_set'
+        Connection.PROFILE_KEY: 'prediction_set',
+        'description': 'Statistical estimates of the ratio of odds of condition occurrence given that a person carries at least onne of the variants in a given class.',
     },
-    {
-        Connection.PROFILE_KEY: 'workflow',
-        'aliases': ["mark-craven:cvfg-aou-workflow-v1"],
-        'name': 'Biobank validation of variant classifications',
-        'source_url': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank'
-    },
-    {
+    { # Incomplete as of 2025-12-08
         Connection.PROFILE_KEY: 'analysis_step',
         'aliases': ["mark-craven:cvfg-aou-analysis-step-v1"],
         "title": 'Biobank validation of variant classifications',
-        "analysis_step_types": [], # Need to create new types?
+        "analysis_step_types": ["logistic regression"],
         "input_content_types": [], # Not sure about matching types
         "output_content_types": [], # Not sure about matching types
-        "step_label": "esm-1v-substitution-scoring-step",
-        "workflow": "mark-craven:esm1v-wokflow-v1"
+        "step_label": "cvfg-aou-step"
     },
     {
         Connection.PROFILE_KEY: 'software',
@@ -47,8 +41,21 @@ payloads = [
         'version': None,
         'software': 'mark-craven:cvfg-aou-software-v1'
     },
+    { # Checked 2025-12-08
+        Connection.PROFILE_KEY: 'analysis_step_version',
+        'aliases': ['mark-craven:cvfg-aou-avalysis-step-version-v1'],
+        'analysis_step': 'mark-craven:cvfg-aou-analysis-step-v1',
+        'software_versions': ['mark-craven:cvfg-aou-software-version-v1']
+    },
+    { # Checked 2025-12-08
+        Connection.PROFILE_KEY: 'workflow',
+        'aliases': ["mark-craven:cvfg-aou-workflow-v1"],
+        'name': 'Biobank validation of variant classifications',
+        'source_url': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank',
+        'analysis_step_versions': ['mark-craven:cvfg-aou-avalysis-step-version-v1']
+    },
     {
-        Connection.PROFILE_KEY, 'tabular_file'
+        Connection.PROFILE_KEY: 'tabular_file'
     },
 ]
 
