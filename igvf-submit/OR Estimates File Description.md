@@ -13,7 +13,7 @@ The classes of variants come from a variaty of sources, including computational 
 - Classifier - string - The method by which variant classes are determined, (e.g. "Author Reported" or "Calibrated (gene-specific)")
 - Classification - string - The classification that defines variants in the evaluated class, e.g. "≥ +1"
 - LogOR - float - The point estimate of the natural log of the odds ratio for the variant class (see Methods for details).
-- p-Value - float - The two tailed p-value under the null hypothesis that the log odds ratio is zero.
+- p-value - float - The two tailed p-value under the null hypothesis that the log odds ratio is zero.
 - LogOR_LI - float - The lowerbound of the two-sided 95% confidence interval of the log odds ratio estimate. 
 - LogOR_UI - float - The upperbound of the two-sided 95% confidence interval of the log odds ratio estimate. 
 - Cases with variants - int - The number of participants in the case cohort that carry a variant in the class, rounded up to a multiple of 20.

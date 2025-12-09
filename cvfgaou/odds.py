@@ -35,15 +35,17 @@ def estimate_logOR(exposure_series, cohort_df, alpha=0.05, variants_series=None)
 
     estimate = lr_model.params['exposure[T.True]']
     ci = lr_model.conf_int(alpha=alpha).loc['exposure[T.True]']
+    pval = lr_model.pvalues['exposure[T.True]']
 
     result_dict = {
         'LogOR': estimate,
         'LogOR_LI': ci[0],
         'LogOR_UI': ci[1],
-        'cases_with_variants': (model_df.exposure & model_df.case).sum(),
-        'controls_with_variants': (model_df.exposure & ~model_df.case).sum(),
-        'cases_without_variants': (~model_df.exposure & model_df.case).sum(),
-        'controls_without_variants': (~model_df.exposure & ~model_df.case).sum()
+        'p-value': pval,
+        'Cases with variants': (model_df.exposure & model_df.case).sum(),
+        'Controls with variants': (model_df.exposure & ~model_df.case).sum(),
+        'Cases without variants': (~model_df.exposure & model_df.case).sum(),
+        'Controls without variants': (~model_df.exposure & ~model_df.case).sum()
     }
 
     return result_dict
@@ -76,8 +78,8 @@ def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, c
     # N. variants in cases/controls/both
     case_vs = variants_series[exposure_series.isin(cohort_df[cohort_df['case'] == 1].index)]
     control_vs = variants_series[exposure_series.isin(cohort_df[cohort_df['case'] == 0].index)]
-    result_dict['variants_per_case'] = case_vs.apply(len).mean()
-    result_dict['variants_per_control'] = control_vs.apply(len).mean()
+    result_dict['Variants per case'] = case_vs.apply(len).mean()
+    result_dict['Variants per control'] = control_vs.apply(len).mean()
 
     # Make case, control, and shared variant sets.
     case_variants = {variant for v_list in case_vs for variant in v_list}
@@ -87,13 +89,13 @@ def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, c
     case_only_variants = case_variants - overlap_variants
     control_only_variants = control_variants - overlap_variants
     
-    result_dict['case_variant_min_af'] = min(af_map[v] for v in case_variants) if case_variants else None
-    result_dict['control_variant_min_af'] = min(af_map[v] for v in control_variants) if control_variants else None
-    result_dict['case_variant_max_af'] = max(af_map[v] for v in case_variants) if case_variants else None
-    result_dict['control_variant_max_af'] = max(af_map[v] for v in control_variants) if control_variants else None
-    result_dict['case_only_variant_count'] = len(case_only_variants)
-    result_dict['control_only_variant_count'] = len(control_only_variants)
-    result_dict['overlap_variant_count'] = len(overlap_variants)
+    result_dict['Case variant min AF'] = min(af_map[v] for v in case_variants) if case_variants else None
+    result_dict['Control variant min AF'] = min(af_map[v] for v in control_variants) if control_variants else None
+    result_dict['Case variant max AF'] = max(af_map[v] for v in case_variants) if case_variants else None
+    result_dict['Control variant max AF'] = max(af_map[v] for v in control_variants) if control_variants else None
+    result_dict['Case only variant count'] = len(case_only_variants)
+    result_dict['Control only variant count'] = len(control_only_variants)
+    result_dict['Overlap variant count'] = len(overlap_variants)
 
     # Variant count breakdowns, in class vs in AoU, and by ClinVar class
     clinvar_df = pd.Series(clinvar_class_map).to_frame(name='ClinVar')
