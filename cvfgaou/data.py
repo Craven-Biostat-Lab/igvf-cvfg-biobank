@@ -63,7 +63,7 @@ gene_phenotypes = {
         'autosomal dominant'
     ),
     'BARD1': (
-        {'breast cancer'},
+        {'breast cancer', 'ovarian cancer'},
         {'cancer'},
         'autosomal dominant'
     ),
@@ -72,7 +72,8 @@ gene_phenotypes = {
             'breast cancer',
             'ovarian cancer',
             'prostate cancer',
-            'pancreatic cancer'
+            'pancreatic cancer',
+            'melanoma'
         },
         {'cancer'},
         'autosomal dominant'
@@ -82,24 +83,25 @@ gene_phenotypes = {
             'breast cancer',
             'ovarian cancer',
             'prostate cancer',
-            'pancreatic cancer'
+            'pancreatic cancer',
+            'melanoma'
         },
         {'cancer'},
         'autosomal dominant'
     ),
     'CALM1': (
         {'long QT syndrome'},
-        {'abnormal QT interval'},
+        {'abnormal QT interval', 'cardiac arrhythmia', 'sudden cardiac death'},
         'autosomal dominant'
     ),
     'CALM2': (
         {'long QT syndrome'},
-        {'abnormal QT interval'},
+        {'abnormal QT interval', 'cardiac arrhythmia', 'sudden cardiac death'},
         'autosomal dominant'
     ),
     'CALM3': (
         {'long QT syndrome'},
-        {'abnormal QT interval'},
+        {'abnormal QT interval', 'cardiac arrhythmia', 'sudden cardiac death'},
         'autosomal dominant'
     ),
     #'CARD11',
@@ -119,7 +121,11 @@ gene_phenotypes = {
     #'FKRP',
     'G6PD': (
         {'deficiency of glucose-6-phosphate dehydrogenase'},
-        {'deficiency of glucose-6-phosphate dehydrogenase'},
+        {
+            'deficiency of glucose-6-phosphate dehydrogenase',
+            'thalassemia',
+            'sickle cell hemoglobin disease'
+        },
         'X-linked' # Abbye: X-linked dominant
     ),
     'GCK': (
@@ -130,13 +136,13 @@ gene_phenotypes = {
     #'HMBS',
     #'JAG1',
     'KCNE1': (
-        {'long QT syndrome'},
-        {'abnormal QT interval'},
+        {'long QT syndrome', 'sudden cardiac death'},
+        {'abnormal QT interval', 'cardiac arrhythmia', 'sudden cardiac death'},
         'autosomal dominant'
     ),
     'KCNH2': (
-        {'long QT syndrome'},
-        {'abnormal QT interval'},
+        {'long QT syndrome', 'sudden cardiac death'},
+        {'abnormal QT interval', 'cardiac arrhythmia', 'sudden cardiac death'},
         'autosomal dominant'
     ),
     'KCNQ4': (
@@ -169,7 +175,8 @@ gene_phenotypes = {
         {
             'breast cancer',
             'ovarian cancer',
-            'pancreatic cancer'
+            'pancreatic cancer',
+            'prostate cancer'
         },
         {'cancer'},
         'autosomal dominant'
@@ -207,11 +214,14 @@ gene_phenotypes = {
     'SCN5A':(
         {
             'long QT syndrome',
-            'dilated cardiomyopathy'
+            'dilated cardiomyopathy',
+            'sudden cardiac death'
         },
         {
             'abnormal QT interval',
-            'cardiomyopathy'
+            'cardiomyopathy',
+            'cardiac arrhythmia',
+            'sudden cardiac death'
         },
         'autosomal dominant'
     ),
