@@ -54,7 +54,7 @@ evidence_phrases_to_points = {
     f'{criterion} {strength.title()}'.lower(): points * sign
     for criterion, sign in (('PP3', 1), ('BP4', -1))
     for points, strength in SOE_TABLE
-}
+} | {'IR': 0}
 
 def evidence_meets_strength(evidence, reference, strict=False):
     """Compare an evidence label to a reference point
@@ -80,8 +80,8 @@ def evidence_meets_strength(evidence, reference, strict=False):
         else:
             reference = ref_lookup
     
-    if reference == 0: raise ValueError('Reference evidence strength cannot be 0')
-
+    # If reference is 0 return true only if evidence is 0
+ 
     if isinstance(evidence, str):
         ev_lookup = evidence_phrases_to_points.get(evidence.replace('_', ' ').lower())
         if ev_lookup is None:
@@ -95,7 +95,13 @@ def evidence_meets_strength(evidence, reference, strict=False):
         else:
             evidence = ev_lookup
     
-    return evidence >= reference if reference > 0 else evidence <= reference
+    return (
+        evidence == reference if reference == 0 else (
+            evidence >= reference if reference > 0 else ( # reference < 0
+                evidence <= reference
+            )
+        )
+    )
 
 
 def var_str(contig, pos, ref, alt):
