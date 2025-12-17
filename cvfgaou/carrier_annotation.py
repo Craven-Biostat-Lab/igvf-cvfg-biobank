@@ -10,7 +10,7 @@ from cvfgaou import hailtools, gctools, notation
 log = logging.getLogger(__name__)
 
 class CarrierAnnotatorVEP:
-    """Class for performing carrier status annotations for AlphaMissense"""
+    """Class for performing carrier status annotations for Variant Effect Predictors"""
 
     def __init__(
         self,
@@ -122,6 +122,21 @@ class CarrierAnnotatorVEP:
                             for classification, (label, compare) in self.gs_threshold_map.items()
                             for threshold in (self.gene_thresholds_df.loc[gene, label], )
                             if not np.isnan(threshold)
+                        )
+                    ), # We're going to be a bit hacky and extract the =0 level explicitly:
+                    (
+                        (
+                            'Calibrated (gene-specific)',
+                            '0',
+                            per_gene_df[
+                                (
+                                    per_gene_df[self.cols['score']]
+                                    >= self.gene_thresholds_df.loc[gene, 'BP4_Supporting']
+                                ) & (
+                                    per_gene_df[self.cols['score']]
+                                    <= self.gene_thresholds_df.loc[gene, 'PP3_Supporting']
+                                )
+                            ]
                         )
                     )
                 )
