@@ -137,7 +137,7 @@ class CarrierAnnotatorVEP:
                                     <= self.gene_thresholds_df.loc[gene, 'PP3_Supporting']
                                 )
                             ]
-                        )
+                        ),
                     )
                 )
             
