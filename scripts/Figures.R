@@ -31,7 +31,7 @@ gene_groups_df <- tribble(
   "GCK", "Metabolic",
   "KCNE1", "Cardiovascular",
   "KCNH2", "Cardiovascular",
-  "KCNQ4", "Rare disease",
+  "KCNQ4", "Hearing loss", #Rare disease",
   "MSH2", "Cancer",
   "OTC", "Metabolic",
   "PALB2", "Cancer",
@@ -432,7 +432,8 @@ condensed_assay_plot_df <-
       #'TP53_Fortuno_2021_Kato_meta',
       #'TP53_Giacomelli_2018_combined_score'
       #'TSC2_rapgap_unpublished'
-    )
+    ),
+    Classification != "0"
   ) %>%
   left_join(gene_groups_df)
 
@@ -493,6 +494,15 @@ assay_theme = predictor_theme
 
 print(condensed_assay_plot + assay_theme)
 
+ggsave(
+  'Condensed_assay_plot_v1.pdf',
+  condensed_assay_plot +
+    assay_theme +
+    theme(ggh4x.facet.nestline = element_line(color="black")),
+  width = 15,
+  height = 6.5,
+  device = cairo_pdf)
+
 # Cancer only
 
 condensed_assay_plot2 <- ggplot(
@@ -543,3 +553,157 @@ ggsave(
   width = 15,
   height = 6,
   device = cairo_pdf)
+
+# Combined points ---------------------------------------------------------
+
+points_levels = c(
+  "≤ -16", "≤ -15", "≤ -14", "≤ -13", "≤ -12", "≤ -11", "≤ -10", "≤ -9",
+  "≤ -8", "≤ -7", "≤ -6", "≤ -5", "≤ -4", "≤ -3", "≤ -2", "≤ -1",
+  "0",
+  "≥ +1", "≥ +2", "≥ +3", "≥ +4", "≥ +5", "≥ +6", "≥ +7", "≥ +8",
+  "≥ +9", "≥ +10", "≥ +11", "≥ +12", "≥ +13", "≥ +14", "≥ +15", "≥ +16"
+)
+
+combined_points_plot_df <-
+  assay_or_df %>%
+  filter(
+    Dataset == 'Combined points',
+    `Few samples` == FALSE #,
+    #Classifier %in% c('Calibrated (2025-12-08)', 'StandardizedClass'),
+    #`Cases with variants` > 0
+    #Classification %in% assay_classification_levels
+  ) %>%
+  mutate(
+    `Odds Ratio` = exp(LogOR),
+    OR_LI = exp(LogOR_LI),
+    OR_UI = exp(LogOR_UI),
+    significance = if_else(
+      (LogOR_LI > 0) | (LogOR_UI < 0),
+      'Significant at 95%',
+      'Not significant at 95%'
+    ),
+    Classification = factor(
+      Classification,
+      levels = points_levels
+    )
+  )
+
+combined_points_plot <- ggplot(
+  combined_points_plot_df,
+  aes(
+    x = `Odds Ratio`,
+    xmin = OR_LI,
+    xmax = OR_UI,
+    y = Classification,
+    shape = significance
+  )
+) +
+  facet_grid(
+    cols = vars(Gene),
+    scales = 'free'
+  ) +
+  geom_pointrange(position = position_dodge(width=0.5)) +
+  geom_errorbar(width = 0.5, position = position_dodge(width=0.5)) +
+  scale_x_log10(
+    labels = scales::label_number(drop0trailing=TRUE),
+    minor_breaks = NULL,
+    guide = "axis_logticks",
+  ) +
+  scale_shape_manual(
+    #limits = c('Not significant at 95%', 'Significant at 95%'),
+    #minor_breaks = c('circle open'),
+    values = c(
+      'Not significant at 95%' = 'circle open',
+      'Significant at 95%' = 'circle'),
+    breaks = c('Significant at 95%'),
+    guide = guide_legend(position = 'bottom')
+  ) +
+  geom_vline(xintercept = 1, linetype = 'dashed') +
+  #geom_blank(aes(x = assay_plot_common_limits)) +
+  guides(color = guide_legend(
+    position = 'bottom',
+    override.aes = aes(shape = 'circle open')
+  ))
+
+print(combined_points_plot)
+
+combined_points_condensed_plot_df <-
+  combined_points_plot_df %>%
+  filter(
+    !(Gene %in% c(
+      "G6PD", "KCNH2", # Poor phenotype definition
+      "GCK", "KCNE1", "PTEN", "SCN5A", "TSC2" # No sig. intervals
+    )),
+    Classification != "0"
+  ) %>%
+  left_join(gene_groups_df)
+
+combined_points_condensed_plot <- ggplot(
+  combined_points_condensed_plot_df,
+  aes(
+    x = `Odds Ratio`,
+    xmin = OR_LI,
+    xmax = OR_UI,
+    y = Classification,
+    shape = significance
+  )
+) +
+  facet_nested(
+    cols = vars(Disease, Gene),
+    scales = 'free',
+    labeller = as_labeller(
+      function(s) s %>% str_replace_all('_', ' ') %>% str_wrap(width=7)
+    )
+  ) +
+  geom_pointrange(position = position_dodge(width=0.5)) +
+  geom_errorbar(width = 0.5, position = position_dodge(width=0.5)) +
+  scale_x_log10(
+    labels = scales::label_number(drop0trailing=TRUE),
+    minor_breaks = NULL,
+    guide = "axis_logticks",
+  ) +
+  scale_shape_manual(
+    #limits = c('Not significant at 95%', 'Significant at 95%'),
+    #minor_breaks = c('circle open'),
+    values = c(
+      'Not significant at 95%' = 'circle open',
+      'Significant at 95%' = 'circle'),
+    breaks = c('Significant at 95%'),
+    guide = guide_legend(position = 'bottom')
+  ) +
+  geom_vline(xintercept = 1, linetype = 'dashed') +
+  #geom_blank(aes(x = 0.25)) +
+  geom_blank(aes(x = 6)) +
+  guides(color = guide_legend(
+    position = 'bottom',
+    override.aes = aes(shape = 'circle open')
+  ))
+
+print(
+  combined_points_condensed_plot +
+    assay_theme +
+    theme(ggh4x.facet.nestline = element_line(color="black"))
+)
+
+ggsave(
+  'Combined_points_plot.pdf',
+  combined_points_condensed_plot +
+    assay_theme +
+    theme(ggh4x.facet.nestline = element_line(color="black")),
+  width = 15,
+  height = 8,
+  device = cairo_pdf)
+
+# Fancy phenotype grouping
+
+pheno_df <-
+  combined_points_condensed_plot_df %>%
+  select(Gene, `Case inclusion phenotypes`) %>%
+  unique() %>%
+  unnest(`Case inclusion phenotypes`) %>%
+  cbind(Yes='X') %>%
+  pivot_wider(
+    names_from = `Case inclusion phenotypes`,
+    values_from = Yes, values_fill = '.')
+
+View(pheno_df)
