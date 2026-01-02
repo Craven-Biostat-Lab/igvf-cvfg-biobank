@@ -6,8 +6,7 @@ The classes of variants come from a variaty of sources, including computational 
 
 ## Column definition
 
-- Dataset - string - The dataset on which the variant classification is based. This can be the name of a VEP (e.g. "AlphaMissense"), a functional study (e.g. "BRCA1_Findlay_2018"), of a curated data source (e.g. "ClinVar").
-- Category - string - The category of dataset: one of "Predictor," "Assay," "Baseline." 
+- Dataset - string - The dataset on which the variant classification is based. This can be the name of a VEP (e.g. "AlphaMissense") or a functional study (e.g. "BRCA1_Findlay_2018").
 - Gene Symbol - string - The gene symbol of the gene evaluated, (e.g. "BRCA1").
 - ENSG - string - The Ensembl Gene ID
 - Classifier - string - The method by which variant classes are determined, (e.g. "Author Reported" or "Calibrated (gene-specific)")
@@ -47,6 +46,9 @@ The classes of variants come from a variaty of sources, including computational 
 - Class ClinVar Other / not in ClinVar - int - The number of variants from the variant class that were actually observed in the biobank cohort that don't have a ClinVar annotation or don't fit into one of the other ClinVar categories above.
 - Case inclusion phenotypes - list of string - The conditions the presence of which include a participant in the case cohort.
 - Control exclusion phenotypes - list of string - The conditions the presence of which exclude a participant from the control cohort.
+- SpliceAI filter max - float - If present, participants carrying splice variants in the gene were excluded from the analysis. The value in this column is the SpliceAI score threshold used for determining this exclusion criterion.
+- Data Version - string - Identifies relevant version of functional data, if applicable.
+- AoU CDR - string - The version of the All of Us data release used.
 
 ## Methods
 
@@ -56,6 +58,6 @@ We consider variant classes defined by (i) author-provided classifications and (
 
 ### Odds ratio estimation
 
-We fit a logistic regression model to estimate the odds ratio of disease phenotype given carrier status. Specifically, we fit a model where the response variable is case/control status, and explanatory variables are carrier status for the variant class, sex assigned at birth, age at the time of AoU data release, and 15 genetic ancestry PCA components computed by the AoU research program. This yields a point estimate and standard deviation for the log odds ratio associated with the carrier status variable, and we report 95% confidence intervals constructed using the normal distribution approximation based on these values.
+We fit a logistic regression model to estimate the odds ratio of disease phenotype given carrier status. Specifically, we fit a model where the response variable is case/control status, and explanatory variables are carrier status for the variant class, sex assigned at birth, age at the time of AoU data release, and 15 genetic ancestry PCA components computed by the AoU research program. This yields a point estimate and standard deviation for the log odds ratio associated with the carrier status variable, and we report 95% confidence intervals constructed using the normal distribution approximation of the distribution of the log odds based on these values.
 
 

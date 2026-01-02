@@ -5,40 +5,67 @@
 if __name__ != '__main__':
     raise 'This is a script. Do not import.'
 
+DEBUG = False
+if DEBUG:
+    print("Debug / dry-run mode")
+
+import pandas as pd
 from igvf_utils.connection import Connection
+import igvf_utils as iu
 
 common_properties = {
     "lab": "mark-craven",
     "award": "HG012039",
 }
 
+# Pull gene list from submission file
+estimates_file_path = 'data/all-or-estimates_2025-12-30.csv.gz'
+ensg_list = pd.read_csv(estimates_file_path, usecols=['ENSG'])['ENSG'].drop_duplicates().to_list()
+
 payloads = [
-    {
-        Connection.PROFILE_KEY: 'prediction_set',
-        'description': 'Statistical estimates of the ratio of odds of condition occurrence given that a person carries at least onne of the variants in a given class.',
+    { # Checked 2026-01-02
+        Connection.PROFILE_KEY: 'document',
+        'aliases': ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
+        'document_type': 'file format specification',
+        'description': 'File format specification for Biobank validation OR estimates.',
+        'attachment': {'path': 'OR Estimates File Description.md'}
     },
-    { # Incomplete as of 2025-12-08
+    { # Checked 2026-01-02
+        Connection.PROFILE_KEY: 'prediction_set',
+        'aliases': ["mark-craven:cvfg-aou-or-estimates-fileset-v1"],
+        'description':
+            'Statistical estimates of the ratio of odds of condition occurrence given that '
+            'a person carries at least one of the variants in a given class.',
+        'documents': ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
+        'donors': ["IGVFDO5469RVDJ"],
+        'file_set_type': 'pathogenicity validation',
+        'scope': 'genes',
+        'small_scale_gene_list': ensg_list
+    },
+    { # Checked 2026-01-02
         Connection.PROFILE_KEY: 'analysis_step',
         'aliases': ["mark-craven:cvfg-aou-analysis-step-v1"],
         "title": 'Biobank validation of variant classifications',
         "analysis_step_types": ["logistic regression"],
-        "input_content_types": [], # Not sure about matching types
-        "output_content_types": [], # Not sure about matching types
+        "input_content_types": ['variant effects'],
+        "output_content_types": ['pathogenicity validation'],
         "step_label": "cvfg-aou-step"
     },
-    {
+    { # Checked 2026-01-02
         Connection.PROFILE_KEY: 'software',
         'aliases': ["mark-craven:cvfg-aou-software-v1"],
         "title": "Biobank validation of variant classifications",
         "name": "igvf-cvfg-biobank",
         "source_url": 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank',
-        "description": "Python package for performing biobank validation of variant classifications in the All of Us Workbench."
+        "description":
+            "Python package for performing biobank validation of variant classifications "
+            "in the All of Us Workbench."
     },
-    {
+    { # Checked 2026-01-02
         Connection.PROFILE_KEY: 'software_version',
         'aliases': ["mark-craven:cvfg-aou-software-version-v1"],
-        'download_id': None,
-        'version': None,
+        'download_id': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/releases/tag/v1.0.0',
+        'version': '1.0.0',
         'software': 'mark-craven:cvfg-aou-software-v1'
     },
     { # Checked 2025-12-08
@@ -54,15 +81,28 @@ payloads = [
         'source_url': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank',
         'analysis_step_versions': ['mark-craven:cvfg-aou-avalysis-step-version-v1']
     },
-    {
-        Connection.PROFILE_KEY: 'tabular_file'
+    { # Checked 2026-01-02
+        Connection.PROFILE_KEY: 'tabular_file',
+        "aliases": ["mark-craven:cvfg-aou-or-estimates-v1"],
+        "description": "Statistical estimates of the ratio of odds of condition occurrence given that a person carries at least one of the variants in a given class.",
+        "content_type": "pathogenicity validation",
+        "controlled_access": False,
+        "file_format": "csv",
+        "file_format_specifications": ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
+        "file_set": "mark-craven:cvfg-aou-or-estimates-fileset-v1",
+        "submitted_file_name": estimates_file_path
     },
 ]
 
-conn = Connection('dev', dry_run=True)
+conn = Connection('prod', dry_run=DEBUG)
 
 for payload in payloads:
     payload.update(common_properties)
-    conn.post(payload)
-
-
+    if DEBUG:
+        try:
+            print(payload)
+            conn.post(payload)
+        except Exception as e:
+            print(e)
+    else:
+        conn.post(payload)
