@@ -21,6 +21,7 @@ common_properties = {
 # Pull gene list from submission file
 estimates_file_path = 'data/all-or-estimates_2025-12-30.csv.gz'
 ensg_list = pd.read_csv(estimates_file_path, usecols=['ENSG'])['ENSG'].drop_duplicates().to_list()
+ensg_list = [s.split('.')[0] for s in ensg_list]
 
 payloads = [
     { # Checked 2026-01-02
@@ -36,9 +37,8 @@ payloads = [
         'description':
             'Statistical estimates of the ratio of odds of condition occurrence given that '
             'a person carries at least one of the variants in a given class.',
-        'documents': ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
         'donors': ["IGVFDO5469RVDJ"],
-        'file_set_type': 'pathogenicity validation',
+        'file_set_type': 'functional effect',
         'scope': 'genes',
         'small_scale_gene_list': ensg_list
     },
@@ -65,7 +65,7 @@ payloads = [
         Connection.PROFILE_KEY: 'software_version',
         'aliases': ["mark-craven:cvfg-aou-software-version-v1"],
         'download_id': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/releases/tag/v1.0.0',
-        'version': '1.0.0',
+        'version': 'v1.0.0',
         'software': 'mark-craven:cvfg-aou-software-v1'
     },
     { # Checked 2025-12-08
@@ -98,9 +98,10 @@ conn = Connection('prod', dry_run=DEBUG)
 
 for payload in payloads:
     payload.update(common_properties)
+    print(payload)
+    print(conn.get_profile_from_payload(payload).properties)
     if DEBUG:
         try:
-            print(payload)
             conn.post(payload)
         except Exception as e:
             print(e)
