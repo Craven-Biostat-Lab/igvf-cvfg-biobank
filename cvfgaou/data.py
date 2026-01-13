@@ -105,7 +105,7 @@ gene_phenotypes = {
         'autosomal dominant'
     ),
     #'CARD11',
-    #'CBS',
+    'CBS': ({'homocystinuria'}, {'homocystinuria'}, 'autosomal recessive'),
     'CHEK2': (
         {
             'breast cancer',
@@ -115,9 +115,9 @@ gene_phenotypes = {
         'autosomal dominant'
     ),
     #'CRX',
-    #'CTCF',
-    #'DDX3X',
-    #'F9',
+    'CTCF': ({'intellectual disability', 'intellectual disability'}, 'autosomal dominant'),
+    'DDX3X': ({'intellectual disability male', 'intellectual disability male'}, 'X-linked'),
+    #'F9': ({'hemophilia B'}, {'hemophilia'}, 'X-linked'),
     #'FKRP',
     'G6PD': (
         {'deficiency of glucose-6-phosphate dehydrogenase'},
@@ -225,7 +225,7 @@ gene_phenotypes = {
         },
         'autosomal dominant'
     ),
-    #'SFPQ',
+    'SFPQ': ({'renal cell carcinoma or bone sarcoma'}, {'cancer'}, 'autosomal dominant'),
     #'SGCB',
     'TARDBP': (
         {
@@ -246,11 +246,15 @@ gene_phenotypes = {
     #'TPK1',
     'TSC2': (
         {'tuberous sclerosis'},
-        {'tuberous sclerosis'},
+        {'tuberous sclerosis', 'cancer'},
         'autosomal dominant'
     ),
     #'VHL',
-    #'XRCC2'
+    'XRCC2': (
+        {'breast cancer', 'ovarian cancer'},
+        {'cancer'},
+        'autosomal dominant'
+    )
 }
 
 # Bergquist et al. thresholds 10.1016/j.gim.2025.101402
