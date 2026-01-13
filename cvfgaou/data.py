@@ -226,7 +226,7 @@ gene_phenotypes = {
         'autosomal dominant'
     ),
     'SFPQ': ({'renal cell carcinoma or bone sarcoma'}, {'cancer'}, 'autosomal dominant'),
-    #'SGCB',
+    'SGCB': ({'limb-girdle muscular dystrophy'}, {'muscular dystrophy'}, 'autosomal recessive'),
     'TARDBP': (
         {
             'amyotrophic lateral sclerosis',
