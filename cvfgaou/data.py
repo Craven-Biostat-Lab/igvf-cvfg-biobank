@@ -115,8 +115,8 @@ gene_phenotypes = {
         'autosomal dominant'
     ),
     #'CRX',
-    'CTCF': ({'intellectual disability', 'intellectual disability'}, 'autosomal dominant'),
-    'DDX3X': ({'intellectual disability male', 'intellectual disability male'}, 'X-linked'),
+    'CTCF': ({'intellectual disability'}, {'intellectual disability'}, 'autosomal dominant'),
+    'DDX3X': ({'intellectual disability male'}, {'intellectual disability male'}, 'X-linked'),
     #'F9': ({'hemophilia B'}, {'hemophilia'}, 'X-linked'),
     #'FKRP',
     'G6PD': (
