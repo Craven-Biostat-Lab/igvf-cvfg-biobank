@@ -19,7 +19,7 @@ common_properties = {
 }
 
 # Pull gene list from submission file
-estimates_file_path = 'data/all-or-estimates_2025-12-30.csv.gz'
+estimates_file_path = 'data/all-or-estimates_2026-01-20.csv.gz'
 ensg_list = pd.read_csv(estimates_file_path, usecols=['ENSG'])['ENSG'].drop_duplicates().to_list()
 ensg_list = [s.split('.')[0] for s in ensg_list]
 
@@ -29,7 +29,7 @@ payloads = [
         'aliases': ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
         'document_type': 'file format specification',
         'description': 'File format specification for Biobank validation OR estimates.',
-        'attachment': {'path': 'OR Estimates File Description.md'}
+        'attachment': {'path': 'OR Estimates File Description.pdf'}
     },
     { # Checked 2026-01-02
         Connection.PROFILE_KEY: 'prediction_set',
@@ -83,7 +83,7 @@ payloads = [
     },
     { # Checked 2026-01-02
         Connection.PROFILE_KEY: 'tabular_file',
-        "aliases": ["mark-craven:cvfg-aou-or-estimates-v1"],
+        "aliases": ["mark-craven:cvfg-aou-or-estimates-v2"],
         "description": "Statistical estimates of the ratio of odds of condition occurrence given that a person carries at least one of the variants in a given class.",
         "content_type": "pathogenicity validation",
         "controlled_access": False,

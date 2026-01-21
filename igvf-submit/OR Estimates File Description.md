@@ -9,7 +9,7 @@ The classes of variants come from a variaty of sources, including computational 
 - Dataset - string - The dataset on which the variant classification is based. This can be the name of a VEP (e.g. "AlphaMissense") or a functional study (e.g. "BRCA1_Findlay_2018").
 - Gene Symbol - string - The gene symbol of the gene evaluated, (e.g. "BRCA1").
 - ENSG - string - The Ensembl Gene ID
-- Classifier - string - The method by which variant classes are determined, (e.g. "Author Reported" or "Calibrated (gene-specific)")
+- Classifier - string - The method by which variant classes are determined, (e.g. "ExCALIBR" or "Gene-specific calibration")
 - Classification - string - The classification that defines variants in the evaluated class, e.g. "≥ +1"
 - LogOR - float - The point estimate of the natural log of the odds ratio for the variant class (see Methods for details).
 - p-value - float - The two tailed p-value under the null hypothesis that the log odds ratio is zero.
