@@ -36,7 +36,6 @@ class TableVariantGrouper(VariantGrouper):
     def __init__(
         self,
         variants_df,
-        class_col,
         gene_col,
         classifier_name,
         dataset = None,
@@ -62,7 +61,6 @@ class TableVariantGrouper(VariantGrouper):
         if col_mapping is not None:
             self.cols.update(col_mapping)
         
-        self.cols['class'] = class_col
         self.cols['gene'] = gene_col
         self.cols['dataset'] = dataset_col
 
@@ -108,19 +106,146 @@ class TableVariantGrouper(VariantGrouper):
 
 class TableClassVariantGrouper(TableVariantGrouper):
 
+    def __init__(
+        self,
+        variants_df,
+        class_col,
+        gene_col,
+        classifier_name=None,
+        dataset=None,
+        dataset_col=None,
+        col_mapping=None,
+        metadata_cols=None,
+        fixed_metadata=None
+    ):
+        
+        super().__init__(
+            variants_df,
+            gene_col,
+            class_col if classifier_name is None else classifier_name,
+            dataset,
+            dataset_col,
+            col_mapping,
+            metadata_cols,
+            fixed_metadata
+        )
+
+        self.cols['class'] = class_col
+
     def get_groups(self, dataset, gene):
-        pass
+        return self.df[
+            (self.df[self.cols['dataset']] == dataset) &
+            (self.df[self.cols['gene']] == gene)
+        ].groupby(self.df[self.cols['class']])
 
 
 class TablePointsVariantGrouper(TableVariantGrouper):
 
+    def __init__(
+        self,
+        variants_df,
+        points_col,
+        gene_col,
+        classifier_name=None,
+        dataset=None,
+        dataset_col=None,
+        points_limits=(None,None),
+        col_mapping=None,
+        metadata_cols=None,
+        fixed_metadata=None
+    ):
+        
+        super().__init__(
+            variants_df,
+            gene_col,
+            points_col if classifier_name is None else classifier_name,
+            dataset,
+            dataset_col,
+            col_mapping,
+            metadata_cols,
+            fixed_metadata
+        )
+
+        self.cols['points'] = points_col
+        self.points_min, self.points_max = points_limits
+
     def get_groups(self, dataset, gene):
+        subframe = self.df[
+            (self.df[self.cols['dataset']] == dataset) &
+            (self.df[self.cols['gene']] == gene)
+        ]
+
+        # Establish upper and lower bounds
+        points_min = subframe[self.cols['points']].min()
+        points_max = subframe[self.cols['points']].max()
+        if self.points_min is not None and points_min > self.points_min:
+            points_min = self.points_min
+        if self.points_max is not None and points_max < self.points_max:
+            points_min = self.points_max
+
+        for points in range(points_min, points_max+1):
+            if points < 0:
+                yield f'{notation.LEQ_CHAR} {points}', subframe[self.cols['points'] <= points]
+            elif points > 0:
+                yield f'{notation.GEQ_CHAR} {points}', subframe[self.cols['points'] >= points]
+            else: # points == 0 or NaN
+                yield '0', subframe[self.cols['points'] == 0]
+            
         return super().get_groups(dataset, gene)
 
 
 class TableScoresVariantGrouper(TableVariantGrouper):
 
+    def __init__(
+        self,
+        variants_df,
+        score_col,
+        gene_col,
+        classifier_name=None,
+        dataset=None,
+        dataset_col=None,
+        fixed_thresholds=None,
+        gene_thresholds=None,
+        dataset_thresholds=None,
+        col_mapping=None,
+        metadata_cols=None,
+        fixed_metadata=None
+    ):
+        
+        super().__init__(
+            variants_df,
+            gene_col,
+            score_col if classifier_name is None else classifier_name,
+            dataset,
+            dataset_col,
+            col_mapping,
+            metadata_cols,
+            fixed_metadata
+        )
+
+        self.cols['score'] = score_col
+
+        # Save thresholds
+        if fixed_thresholds is not None and gene_thresholds is None and dataset_thresholds is None:
+            self.threshold_type = 'fixed'
+            self.thresholds = fixed_thresholds
+        elif fixed_thresholds is None and gene_thresholds is not None and dataset_thresholds is None:
+            self.threshold_type = 'gene'
+            self.thresholds = gene_thresholds
+        elif fixed_thresholds is None and gene_thresholds is None and dataset_thresholds is not None:
+            self.threshold_type = 'dataset'
+            self.thresholds = dataset_thresholds
+        else:
+            raise ValueError("Exactly one of fixed_ gene_ or dataset_ thresholds may be provided.")
+
     def get_groups(self, dataset, gene):
+        subframe = self.df[
+            (self.df[self.cols['dataset']] == dataset) &
+            (self.df[self.cols['gene']] == gene)
+        ]
+
+        # Todo
+        
         return super().get_groups(dataset, gene)
 
 
