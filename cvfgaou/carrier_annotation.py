@@ -9,40 +9,126 @@ from cvfgaou import hailtools, gctools, notation
 
 log = logging.getLogger(__name__)
 
-class CarrierAnnotatorVEP:
-    """Class for performing carrier status annotations for Variant Effect Predictors"""
+
+class VariantGrouper:
+    """Interface for generating variant groups for analysis"""
+
+    def __init__(self):
+        self.classifier_name = None
+        self.bundles = set()
+        self.cols = {
+            'contig': 'contig',
+            'position': 'position',
+            'ref_allele': 'ref_allele',
+            'alt_allele': 'alt_allele'
+        }
+    
+    def metadata(self, dataset, gene):
+        """Metadata dictionary for this bundle"""
+        return {}
+    
+    def get_groups(self, dataset, gene):
+        return []
+        
+
+class TableVariantGrouper(VariantGrouper):
 
     def __init__(
         self,
-        variant_level_calibrations_df,
-        gene_thresholds_df,
-        output_location,
-        wgs_mt,
-        clinvar_bins_df,
-        vat_loader, # Function that takes a gene and returns a dataframe
-        variant_table_col_map,
-        predictor_name,
-        splice_ai_filter_max=np.inf,
-        af_filter_max=np.inf,
-        progress_tracker=None
+        variants_df,
+        class_col,
+        gene_col,
+        classifier_name,
+        dataset = None,
+        dataset_col = None,
+        col_mapping = None,
+        metadata_cols = None,
+        fixed_metadata = None
     ):
-        self.variant_level_calibrations_df = variant_level_calibrations_df
-        self.output_location = output_location
-        self.load_vat = vat_loader
+        super().__init__()
 
-        self.wgs_mt = wgs_mt
-        self.clinvar_bins_df = clinvar_bins_df
+        self.df = variants_df
+        self.classifier_name = classifier_name
+        self.metadata_cols = metadata_cols
+        self.fixed_metadata = fixed_metadata
 
-        self.splice_ai_filter_max = splice_ai_filter_max
-        self.af_filter_max = af_filter_max
+        self.cols = {
+            'contig': 'contig',
+            'position': 'position',
+            'ref_allele': 'ref_allele',
+            'alt_allele': 'alt_allele'
+        }
 
-        self.progress_tracker = (lambda x: x) if progress_tracker is None else progress_tracker
+        if col_mapping is not None:
+            self.cols.update(col_mapping)
+        
+        self.cols['class'] = class_col
+        self.cols['gene'] = gene_col
+        self.cols['dataset'] = dataset_col
 
-        self.predictor_name = predictor_name
-        self.outfile_prefix = predictor_name.lower()
 
-        self.cols = variant_table_col_map
+        if dataset is not None:
+            if dataset_col is not None:
+                raise ValueError("Provide exactly one of dataset or dataset_col")
+            
+            self.dataset = dataset
+            self.bundles = {
+                (self.dataset, gene) for gene in self.df[self.cols['gene']].drop_duplicates()
+            }
+        else:
+            if dataset_col is None:
+                raise ValueError("Provide exactly one of dataset or dataset_col")
+            
+            self.bundles = {
+                (dataset, gene)
+                for dataset, gene
+                in self.df[[self.cols['dataset'], self.cols['gene']]].drop_duplicates().itertuples(index=False)
+            }
+    
+    def metadata(self, dataset, gene):
+        metadata = {}
+        if self.fixed_metadata is not None:
+            metadata.update(self.fixed_metadata)
+        if self.metadata_cols is not None:
+            subframe = self.df[
+                (self.cols['dataset'] == dataset) &
+                (self.df.cols['gene'] == gene)
+            ]
+            if not subframe.empty:
+                for col in self.metadata_cols:
+                    if col in subframe.columns:
+                        info_val = subframe[col].iloc[0]
+                        if not (subframe[col] == info_val).all():
+                            log.warning(f'Multiple values for {col} in {dataset}, {gene}; Using the first.')
+                        metadata[col] = info_val
+                    else:
+                        log.warning(f'Metadata column {col} not in dataframe')
+        return metadata
+    
 
+class TableClassVariantGrouper(TableVariantGrouper):
+
+    def get_groups(self, dataset, gene):
+        pass
+
+
+class TablePointsVariantGrouper(TableVariantGrouper):
+
+    def get_groups(self, dataset, gene):
+        return super().get_groups(dataset, gene)
+
+
+class TableScoresVariantGrouper(TableVariantGrouper):
+
+    def get_groups(self, dataset, gene):
+        return super().get_groups(dataset, gene)
+
+
+class GeneThresholdVariantGrouper:
+    """Class for grouping variants using a gene threshold table"""
+
+    def __init__(self, gene_thresholds_df):
+        
         # Load gene-specific Calibration table
         # This table is indexed by gene
         self.gene_thresholds_df = gene_thresholds_df
@@ -54,124 +140,98 @@ class CarrierAnnotatorVEP:
             for points, strength in notation.SOE_TABLE
         }
 
+
+class CarrierAnnotator:
+    """Class for performing carrier status annotations"""
+
+    def __init__(
+        self,
+        output_location,
+        wgs_mt,
+        clinvar_bins_df,
+        vat_loader, # Function that takes a gene and returns a dataframe
+        variant_goupers=None,
+        restrict_to_genes=None,
+        progress_tracker=None
+    ):
+        self.output_location = output_location
+        self.load_vat = vat_loader
+
+        self.wgs_mt = wgs_mt
+        self.clinvar_bins_df = clinvar_bins_df
+
+        self.progress_tracker = (lambda x: x) if progress_tracker is None else progress_tracker
+
+        self.variant_groupers = [] if variant_goupers is None else variant_goupers
+
+        self.restrict_to_genes = restrict_to_genes
+    
+
+    def data_bundles(self):
+        bundle_set = set()
+        for grouper in self.variant_groupers:
+            bundle_set |= grouper.bundles
+        
+        if self.restrict_to_genes is not None:
+            bundle_set = {
+                (dataset, gene)
+                for dataset, gene in bundle_set
+                if gene in self.restrict_to_genes
+            }
+
+        return bundle_set
+
+
     def build_exposure_package(self):
 
-        for gene, per_gene_df in self.progress_tracker(self.variant_level_calibrations_df.groupby(self.cols['gene'])):
+        for (dataset, gene) in self.data_bundles():
+
+            bundle_name = f'{dataset}_{gene}'
             
-            exposures_file = f'{self.output_location}/exposures/{self.outfile_prefix}_{gene}.parquet'
-            clinvar_file = f'{self.output_location}/clinvar_maps/{self.outfile_prefix}_{gene}.parquet'
-            af_file = f'{self.output_location}/af_maps/{self.outfile_prefix}_{gene}.parquet'
+            exposures_file = f'{self.output_location}/exposures/{bundle_name}.parquet'
+            clinvar_file = f'{self.output_location}/clinvar_maps/{bundle_name}.parquet'
+            af_file = f'{self.output_location}/af_maps/{bundle_name}.parquet'
             
             if gctools.blob_exists(exposures_file):
                 log.info(f'Skipping {gene} because {exposures_file} exists.')
                 continue
             
-            # Filter spliceAI score
-            gene_vat = self.load_vat(gene)
-            gene_vat = gene_vat[
-                (gene_vat.gnomad_all_af <= self.af_filter_max) &
-                ~(
-                    (gene_vat.splice_ai_acceptor_gain_score > self.splice_ai_filter_max) |
-                    (gene_vat.splice_ai_acceptor_loss_score > self.splice_ai_filter_max) |
-                    (gene_vat.splice_ai_donor_gain_score > self.splice_ai_filter_max) |
-                    (gene_vat.splice_ai_donor_loss_score > self.splice_ai_filter_max)
-                )
-            ]
-            per_gene_df = per_gene_df.merge(
-                gene_vat[['contig', 'position', 'ref_allele', 'alt_allele']].drop_duplicates(),
-                how='inner',
-                left_on=[
-                    self.cols['contig'],
-                    self.cols['position'],
-                    self.cols['ref_allele'],
-                    self.cols['alt_allele']
-                ],
-                right_on=['contig', 'position', 'ref_allele', 'alt_allele']
-            )
-            
             gene_result_dfs = []
             clinvar_classes_dfs = []
             joint_af_map = {}
-            
-            variant_classes = (
-                (
-                    method_label,
-                    f'{notation.GEQ_CHAR if points > 0 else notation.LEQ_CHAR} {points:+d}',
-                    per_gene_df[
-                        per_gene_df[colname].apply(
-                            notation.evidence_meets_strength,
-                            args=(points,)
-                        )
-                    ]
-                )
-                for points in range(-4, 4) if points != 0
-                for method_label, colname in (
-                    ('Calibrated (genome-wide)', 'old_call'),
-                    ('Calibrated (cluster-based)', 'cluster_call')
-                )
-            )
 
-            # Gene-specific thresholds
-            if gene in self.gene_thresholds_df.index:
-                variant_classes = chain(
-                    variant_classes,
-                    (
-                        ('Calibrated (gene-specific)', c, per_gene_df[selection])
-                        for c, selection in (
-                            (classification, compare(per_gene_df[self.cols['score']], threshold))
-                            for classification, (label, compare) in self.gs_threshold_map.items()
-                            for threshold in (self.gene_thresholds_df.loc[gene, label], )
-                            if not np.isnan(threshold)
-                        )
-                    ), # We're going to be a bit hacky and extract the =0 level explicitly:
-                    (
-                        (
-                            'Calibrated (gene-specific)',
-                            '0',
-                            per_gene_df[
-                                (
-                                    per_gene_df[self.cols['score']]
-                                    >= self.gene_thresholds_df.loc[gene, 'BP4_Supporting']
-                                ) & (
-                                    per_gene_df[self.cols['score']]
-                                    <= self.gene_thresholds_df.loc[gene, 'PP3_Supporting']
-                                )
-                            ]
-                        ),
-                    )
-                )
-            
-            for classifier, classification, variant_df in self.progress_tracker(variant_classes):
+            for grouper in self.variant_groupers:
+                classifier = grouper.classifier_name
 
-                if variant_df.empty: continue
+                for classification, variant_df in self.progress_tracker(grouper.get_groups(dataset, gene)):      
+
+                    if variant_df.empty: continue
                     
-                try:
-                    exposure_df, af_map, clinvar_df = hailtools.get_exposure_package(
-                        variant_df,
-                        self.wgs_mt,
-                        self.clinvar_bins_df,
-                        contig_col=self.cols['contig'],
-                        pos_col=self.cols['position'],
-                        ref_col=self.cols['ref_allele'],
-                        alt_col=self.cols['alt_allele'],
-                        metadata_dict = {
-                            'Dataset': self.predictor_name,
-                            'Gene': gene,
-                            'Classifier': classifier,
-                            'Classification': classification,
-                            'SpliceAI filter max': self.splice_ai_filter_max,
-                            'AF filter max': self.af_filter_max
-                        }
-                    )
+                    try:
+                        exposure_df, af_map, clinvar_df = hailtools.get_exposure_package(
+                            variant_df,
+                            self.wgs_mt,
+                            self.clinvar_bins_df,
+                            contig_col=grouper.cols['contig'],
+                            pos_col=grouper.cols['position'],
+                            ref_col=grouper.cols['ref_allele'],
+                            alt_col=grouper.cols['alt_allele'],
+                            metadata_dict = {
+                                'Dataset': dataset,
+                                'Gene': gene,
+                                'Classifier': classifier,
+                                'Classification': classification
+                            } | grouper.metadata(dataset, gene)
+                        )
 
-                    clinvar_classes_dfs.append(clinvar_df)
-                    joint_af_map.update(af_map)
-                    gene_result_dfs.append(exposure_df)
-                    
-                except:
-                    log.error(f'Failed on {gene}, {classifier}, {classification}:')
-                    log.error(variant_df)
-                    raise
+                        clinvar_classes_dfs.append(clinvar_df)
+                        joint_af_map.update(af_map)
+                        gene_result_dfs.append(exposure_df)
+                        
+                    except:
+                        log.error(f'Failed on {gene}, {classifier}, {classification}:')
+                        log.error(variant_df)
+                        raise
                 
             if clinvar_classes_dfs:
                 pd.concat(clinvar_classes_dfs, ignore_index=True).to_parquet(clinvar_file, index=False)
@@ -179,77 +239,3 @@ class CarrierAnnotatorVEP:
                 pd.Series(joint_af_map).to_frame(name='AF').to_parquet(af_file)
             if gene_result_dfs:
                 pd.concat(gene_result_dfs, ignore_index=True).to_parquet(exposures_file, index=False)
-
-
-class CarrierAnnotatorAlphaMissense(CarrierAnnotatorVEP):
-    """Class for performing carrier status annotations for AlphaMissense"""
-
-    def __init__(
-        self,
-        variant_level_calibrations_df,
-        gene_thresholds_df,
-        output_location,
-        wgs_mt,
-        clinvar_bins_df,
-        vat_loader,
-        splice_ai_filter_max=np.inf,
-        af_filter_max=np.inf,
-        progress_tracker=None
-    ):
-        super().__init__(
-            variant_level_calibrations_df,
-            gene_thresholds_df,
-            output_location,
-            wgs_mt,
-            clinvar_bins_df,
-            vat_loader,
-            {
-                'gene': 'gene_symbol',
-                'contig': '#CHROM',
-                'position': 'POS',
-                'ref_allele': 'REF',
-                'alt_allele': 'ALT',
-                'score': 'am_pathogenicity'
-            },
-            'AlphaMissense',
-            splice_ai_filter_max,
-            af_filter_max,
-            progress_tracker
-        )
-
-
-class CarrierAnnotatorREVEL(CarrierAnnotatorVEP):
-    """Class for performing carrier status annotations for REVEL"""
-
-    def __init__(
-        self,
-        variant_level_calibrations_df,
-        gene_thresholds_df,
-        output_location,
-        wgs_mt,
-        clinvar_bins_df,
-        vat_loader,
-        splice_ai_filter_max=np.inf,
-        af_filter_max=np.inf,
-        progress_tracker=None
-    ):
-        super().__init__(
-            variant_level_calibrations_df,
-            gene_thresholds_df,
-            output_location,
-            wgs_mt,
-            clinvar_bins_df,
-            vat_loader,
-            {
-                'gene': 'gene_symbol',
-                'contig': '#CHROM',
-                'position': 'POS',
-                'ref_allele': 'REF',
-                'alt_allele': 'ALT',
-                'score': 'REVEL'
-            },
-            'REVEL',
-            splice_ai_filter_max,
-            af_filter_max,
-            progress_tracker
-        )
