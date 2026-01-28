@@ -29,7 +29,16 @@ class VariantGrouper:
     
     def get_groups(self, dataset, gene):
         return []
-        
+    
+    @property
+    def variant_cols(self):
+        return [
+            self.cols['contig'],
+            self.cols['position'],
+            self.cols['ref_allele'],
+            self.cols['alt_allele']
+        ]
+
 
 class TableVariantGrouper(VariantGrouper):
 
@@ -102,7 +111,7 @@ class TableVariantGrouper(VariantGrouper):
                     else:
                         log.warning(f'Metadata column {col} not in dataframe')
         return metadata
-    
+
 
 class TableClassVariantGrouper(TableVariantGrouper):
 
@@ -185,13 +194,11 @@ class TablePointsVariantGrouper(TableVariantGrouper):
 
         for points in range(points_min, points_max+1):
             if points < 0:
-                yield f'{notation.LEQ_CHAR} {points}', subframe[self.cols['points'] <= points]
+                yield f'{notation.LEQ_CHAR} {points}', subframe.loc[self.cols['points'] <= points, self.variant_cols]
             elif points > 0:
-                yield f'{notation.GEQ_CHAR} {points}', subframe[self.cols['points'] >= points]
+                yield f'{notation.GEQ_CHAR} {points}', subframe.loc[self.cols['points'] >= points, self.variant_cols]
             else: # points == 0 or NaN
-                yield '0', subframe[self.cols['points'] == 0]
-            
-        return super().get_groups(dataset, gene)
+                yield '0', subframe.loc[self.cols['points'] == 0, self.variant_cols]
 
 
 class TableScoresVariantGrouper(TableVariantGrouper):
@@ -244,26 +251,18 @@ class TableScoresVariantGrouper(TableVariantGrouper):
             (self.df[self.cols['gene']] == gene)
         ]
 
-        # Todo
+        if self.threshold_type == 'fixed':
+            thresholds = self.thresholds
+        if self.threshold_type == 'gene':
+            thresholds = self.thresholds.get('gene')
+        if self.threshold_type == 'dataset':
+            thresholds = self.thresholds.get('dataset')
         
-        return super().get_groups(dataset, gene)
-
-
-class GeneThresholdVariantGrouper:
-    """Class for grouping variants using a gene threshold table"""
-
-    def __init__(self, gene_thresholds_df):
-        
-        # Load gene-specific Calibration table
-        # This table is indexed by gene
-        self.gene_thresholds_df = gene_thresholds_df
-
-        # Mapping from our thresholds to thresholds used in the table and the respective comparison direction
-        self.gs_threshold_map = {
-            f'{inequality} {sign}{points}': (f'{criterion}_{strength.title()}', comparator)
-            for inequality, sign, criterion, _, comparator, _ in notation.DOE_TABLE
-            for points, strength in notation.SOE_TABLE
-        }
+        if thresholds is not None:
+            for label, compare, threshold in thresholds:
+                variants = subframe.loc[compare(subframe[self.cols['score']], threshold), self.variant_cols]
+                if not variants.empty:
+                    yield label, variants
 
 
 class CarrierAnnotator:
