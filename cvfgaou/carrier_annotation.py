@@ -73,12 +73,11 @@ class TableVariantGrouper(VariantGrouper):
         self.cols['gene'] = gene_col
         self.cols['dataset'] = dataset_col
 
-
-        if dataset is not None:
+        self.dataset = dataset
+        if self.dataset is not None:
             if dataset_col is not None:
                 raise ValueError("Provide exactly one of dataset or dataset_col")
-            
-            self.dataset = dataset
+                        
             self.bundles = {
                 (self.dataset, gene) for gene in self.df[self.cols['gene']].drop_duplicates()
             }
@@ -179,6 +178,11 @@ class TablePointsVariantGrouper(TableVariantGrouper):
         self.points_min, self.points_max = points_limits
 
     def get_groups(self, dataset, gene):
+        
+        if self.dataset is not None:
+            if dataset != self.dataset:
+                return ()
+        
         subframe = self.df[
             (self.df[self.cols['gene']] == gene)
         ]
@@ -256,6 +260,11 @@ class TableScoresVariantGrouper(TableVariantGrouper):
             raise ValueError("Exactly one of fixed_ gene_ or dataset_ thresholds may be provided.")
 
     def get_groups(self, dataset, gene):
+
+        if self.dataset is not None:
+            if dataset != self.dataset:
+                return ()
+        
         subframe = self.df[
             (self.df[self.cols['gene']] == gene)
         ]
