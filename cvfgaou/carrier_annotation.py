@@ -195,11 +195,20 @@ class TablePointsVariantGrouper(TableVariantGrouper):
 
         for points in range(points_min, points_max+1):
             if points < 0:
-                yield f'{notation.LEQ_CHAR} {points}', subframe.loc[self.cols['points'] <= points, self.variant_cols]
+                yield f'{notation.LEQ_CHAR} {points}', subframe.loc[
+                    subframe[self.cols['points']] <= points,
+                    self.variant_cols
+                ]
             elif points > 0:
-                yield f'{notation.GEQ_CHAR} {points}', subframe.loc[self.cols['points'] >= points, self.variant_cols]
+                yield f'{notation.GEQ_CHAR} {points}', subframe.loc[
+                    subframe[self.cols['points']] >= points,
+                    self.variant_cols
+                ]
             else: # points == 0 or NaN
-                yield '0', subframe.loc[self.cols['points'] == 0, self.variant_cols]
+                yield '0', subframe.loc[
+                    subframe[self.cols['points']] == 0,
+                    self.variant_cols
+                ]
 
 
 class TableScoresVariantGrouper(TableVariantGrouper):
