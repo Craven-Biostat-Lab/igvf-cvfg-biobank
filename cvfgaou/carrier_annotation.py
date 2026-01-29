@@ -111,6 +111,19 @@ class TableVariantGrouper(VariantGrouper):
                         log.warning(f'Metadata column {col} not in dataframe')
         return metadata
 
+    def get_subframe(self, dataset, gene):
+
+        if self.dataset is not None:
+            if dataset != self.dataset:
+                return None
+        
+        subframe = self.df[
+            (self.df[self.cols['gene']] == gene)
+        ]
+        if self.cols['dataset'] is not None:
+            subframe = subframe[subframe[self.cols['dataset']] == dataset]
+        
+        return subframe
 
 class TableClassVariantGrouper(TableVariantGrouper):
 
@@ -141,10 +154,12 @@ class TableClassVariantGrouper(TableVariantGrouper):
         self.cols['class'] = class_col
 
     def get_groups(self, dataset, gene):
-        return self.df[
-            (self.df[self.cols['dataset']] == dataset) &
-            (self.df[self.cols['gene']] == gene)
-        ].groupby(self.df[self.cols['class']])
+
+        subframe = self.get_subframe(dataset, gene)
+        if subframe is None or subframe.empty:
+            return
+
+        return subframe.groupby(self.df[self.cols['class']])
 
 
 class TablePointsVariantGrouper(TableVariantGrouper):
@@ -179,16 +194,10 @@ class TablePointsVariantGrouper(TableVariantGrouper):
 
     def get_groups(self, dataset, gene):
         
-        if self.dataset is not None:
-            if dataset != self.dataset:
-                return ()
-        
-        subframe = self.df[
-            (self.df[self.cols['gene']] == gene)
-        ]
-        if self.cols['dataset'] is not None:
-            subframe = subframe[subframe[self.cols['dataset']] == dataset]
-        
+        subframe = self.get_subframe(dataset, gene)
+        if subframe is None or subframe.empty:
+            return
+
         # Establish upper and lower bounds
         points_min = subframe[self.cols['points']].min()
         points_max = subframe[self.cols['points']].max()
@@ -261,15 +270,9 @@ class TableScoresVariantGrouper(TableVariantGrouper):
 
     def get_groups(self, dataset, gene):
 
-        if self.dataset is not None:
-            if dataset != self.dataset:
-                return ()
-        
-        subframe = self.df[
-            (self.df[self.cols['gene']] == gene)
-        ]
-        if self.cols['dataset'] is not None:
-            subframe = subframe[subframe[self.cols['dataset']] == dataset]
+        subframe = self.get_subframe(dataset, gene)
+        if subframe is None or subframe.empty:
+            return
 
         if self.threshold_type == 'fixed':
             thresholds = self.thresholds
