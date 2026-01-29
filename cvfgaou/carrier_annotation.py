@@ -257,9 +257,10 @@ class TableScoresVariantGrouper(TableVariantGrouper):
 
     def get_groups(self, dataset, gene):
         subframe = self.df[
-            (self.df[self.cols['dataset']] == dataset) &
             (self.df[self.cols['gene']] == gene)
         ]
+        if self.cols['dataset'] is not None:
+            subframe = subframe[subframe[self.cols['dataset']] == dataset]
 
         if self.threshold_type == 'fixed':
             thresholds = self.thresholds
