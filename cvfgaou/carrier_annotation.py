@@ -199,8 +199,8 @@ class TablePointsVariantGrouper(TableVariantGrouper):
             return
 
         # Establish upper and lower bounds
-        points_min = subframe[self.cols['points']].min()
-        points_max = subframe[self.cols['points']].max()
+        points_min = int(subframe[self.cols['points']].min())
+        points_max = int(subframe[self.cols['points']].max())
         if self.points_min is not None and points_min > self.points_min:
             points_min = self.points_min
         if self.points_max is not None and points_max < self.points_max:
