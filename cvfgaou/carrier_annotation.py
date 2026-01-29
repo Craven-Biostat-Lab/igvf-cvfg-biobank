@@ -319,7 +319,7 @@ class CarrierAnnotator:
 
     def build_exposure_package(self):
 
-        for (dataset, gene) in self.data_bundles():
+        for (dataset, gene) in self.progress_tracker(self.data_bundles()):
 
             bundle_name = f'{dataset}_{gene}'
             
