@@ -180,10 +180,11 @@ class TablePointsVariantGrouper(TableVariantGrouper):
 
     def get_groups(self, dataset, gene):
         subframe = self.df[
-            (self.df[self.cols['dataset']] == dataset) &
             (self.df[self.cols['gene']] == gene)
         ]
-
+        if self.cols['dataset'] is not None:
+            subframe = subframe[subframe[self.cols['dataset']] == dataset]
+        
         # Establish upper and lower bounds
         points_min = subframe[self.cols['points']].min()
         points_max = subframe[self.cols['points']].max()
@@ -274,7 +275,7 @@ class CarrierAnnotator:
         wgs_mt,
         clinvar_bins_df,
         vat_loader, # Function that takes a gene and returns a dataframe
-        variant_goupers=None,
+        variant_groupers=None,
         restrict_to_genes=None,
         progress_tracker=None
     ):
@@ -286,7 +287,7 @@ class CarrierAnnotator:
 
         self.progress_tracker = (lambda x: x) if progress_tracker is None else progress_tracker
 
-        self.variant_groupers = [] if variant_goupers is None else variant_goupers
+        self.variant_groupers = [] if variant_groupers is None else variant_groupers
 
         self.restrict_to_genes = restrict_to_genes
     
