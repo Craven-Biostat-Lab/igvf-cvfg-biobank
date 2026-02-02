@@ -208,12 +208,12 @@ class TablePointsVariantGrouper(TableVariantGrouper):
 
         for points in range(points_min, points_max+1):
             if points < 0:
-                yield f'{notation.LEQ_CHAR} {points}', subframe.loc[
+                yield f'{notation.LEQ_CHAR} {points:+d}', subframe.loc[
                     subframe[self.cols['points']] <= points,
                     self.variant_cols
                 ]
             elif points > 0:
-                yield f'{notation.GEQ_CHAR} {points}', subframe.loc[
+                yield f'{notation.GEQ_CHAR} {points:+d}', subframe.loc[
                     subframe[self.cols['points']] >= points,
                     self.variant_cols
                 ]
