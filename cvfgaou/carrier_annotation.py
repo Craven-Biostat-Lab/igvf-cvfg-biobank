@@ -156,7 +156,8 @@ class TableClassVariantGrouper(TableVariantGrouper):
         if subframe is None or subframe.empty:
             return
 
-        return subframe.groupby(self.df[self.cols['class']])[self.variant_cols]
+        for classification, df in subframe.groupby(self.df[self.cols['class']]):
+            yield classification, df[self.variant_cols]
 
 
 class TablePointsVariantGrouper(TableVariantGrouper):
