@@ -96,11 +96,8 @@ class TableVariantGrouper(VariantGrouper):
         if self.fixed_metadata is not None:
             metadata.update(self.fixed_metadata)
         if self.metadata_cols is not None:
-            subframe = self.df[
-                (self.cols['dataset'] == dataset) &
-                (self.df.cols['gene'] == gene)
-            ]
-            if not subframe.empty:
+            subframe = self.get_subframe(dataset, gene)
+            if subframe is not None and not subframe.empty:
                 for col in self.metadata_cols:
                     if col in subframe.columns:
                         info_val = subframe[col].iloc[0]
