@@ -257,6 +257,28 @@ gene_phenotypes = {
     )
 }
 
+
+# List of genes included in the Pillar Project Publication (P3)
+p3_genes = [
+    'BAP1',
+    'BARD1',
+    'BRCA1',
+    'BRCA2',
+    'CHEK2',
+    'GCK',
+    'KCNE1',
+    'KCNH2',
+    'KCNQ4',
+    'MSH2',
+    'PALB2',
+    'PTEN',
+    'RAD51C',
+    'RAD51D',
+    'SCN5A',
+    'TP53',
+    'TSC2'
+]
+
 # Bergquist et al. thresholds 10.1016/j.gim.2025.101402
 
 # AlphaMissense 
