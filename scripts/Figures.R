@@ -3,62 +3,75 @@ update.packages("ggplot2")
 install.packages("patchwork")
 install.packages("ggh4x")
 install.packages("writexl")
+install.packages("extrafont")
 
 # Load libraries ----------------------------------------------------------
 library(arrow)
 library(tidyverse)
 library(patchwork)
 library(ggh4x)
+library(extrafont)
 
 BUCKET <- Sys.getenv('WORKSPACE_BUCKET')
 SAVE <- FALSE
 
 # Load OR tables ----------------------------------------------------------
 
+# Main table
 or_df <- read_parquet(
+  paste0(BUCKET, "/or-estimates/publication-or-estimates-2026-02-05.parquet")
+)
+
+# Table with separated TSC2_IGVF sets for Fig 2
+or_20260120_df <- read_parquet(
   paste0(BUCKET, "/or-estimates/publication-or-estimates-2026-01-20.parquet")
 )
 
 # Broad gene-phenotype classes
 
 gene_groups_df <- tribble(
-  ~Gene, ~Disease, ~D2,
-  "BAP1", "Cancer", "Cancer",
-  "BARD1", "Cancer", "Cancer",
-  "BRCA1", "Cancer", "Cancer",
-  "BRCA2", "Cancer", "Cancer",
-  "CALM3", "Cardiovascular", "Cardio- vascular",
-  "CHEK2", "Cancer", "Cancer",
-  "G6PD", "Metabolic", "Meta- bolic",
-  "GCK", "Metabolic", "Meta- bolic",
-  "KCNE1", "Cardiovascular", "Cardio- vascular",
-  "KCNH2", "Cardiovascular", "Cardio- vascular",
-  "KCNQ4", "Hearing loss", "Hearing loss", #Rare disease",
-  "MSH2", "Cancer", "Cancer",
-  "OTC", "Metabolic", "Meta- bolic",
-  "PALB2", "Cancer", "Cancer",
-  "PTEN", "Cancer", "Cancer",
-  "RAD51C", "Cancer", "Cancer",
-  "RAD51D", "Cancer", "Cancer",
-  "SCN5A", "Cardiovascular", "Cardio- vascular",
-  "TARDBP", "Rare disease", "Rare disease",
-  "TP53", "Cancer", "Cancer",
-  "TSC2", "Cancer", "Cancer"
+  ~Gene, ~Disease, ~D2, ~D3,
+  "BAP1", "Cancer", "Cancer", "Cancer",
+  "BARD1", "Cancer", "Cancer", "Cancer",
+  "BRCA1", "Cancer", "Cancer", "Cancer",
+  "BRCA2", "Cancer", "Cancer", "Cancer",
+  "CALM3", "Cardiovascular", "Cardio- vascular", "Cardiovascular",
+  "CHEK2", "Cancer", "Cancer", "Cancer",
+  "G6PD", "Metabolic", "Meta- bolic", "Meta- bolic",
+  "GCK", "Metabolic", "Meta- bolic", "Meta- bolic",
+  "KCNE1", "Cardiovascular", "Cardio- vascular", "Cardiovascular",
+  "KCNH2", "Cardiovascular", "Cardio- vascular", "Cardiovascular",
+  "KCNQ4", "Hearing loss", "Hearing loss", "Hearing loss", #Rare disease",
+  "MSH2", "Cancer", "Cancer", "Cancer",
+  "OTC", "Metabolic", "Meta- bolic", "Meta- bolic",
+  "PALB2", "Cancer", "Cancer", "Cancer",
+  "PTEN", "Cancer", "Cancer", "Cancer",
+  "RAD51C", "Cancer", "Cancer", "Cancer",
+  "RAD51D", "Cancer", "Cancer", "Cancer",
+  "SCN5A", "Cardiovascular", "Cardio- vascular", "Cardiovascular",
+  "TARDBP", "Rare disease", "Rare disease", "Rare disease",
+  "TP53", "Cancer", "Cancer", "Cancer",
+  "TSC2", "Cancer", "Cancer", "Cancer"
 )
 
 # Colors for predictor calibrations
 
 color_mapping <- c(
-  `single gene` = "#d62728", 
-  `domain aggregate` = "#f5971e",
-  `gene aggregate` = "#e9dfc6"
+  `gene-specific` = "#CC6015", 
+  `domain aggregation` = "#D2A624",
+  `genome-wide aggregation` = "#544439"
 )
+
+# Font setup
+# Manual step: put Arial TTF files in ~/fonts
+font_import(paths = '~/fonts')
+loadfonts(device = 'all')
 
 # Figure theme
 point_in_mm = 0.3527778
 nature_theme <- theme_linedraw() +
   theme(
-    text = element_text(family = 'Helvetica', size = 7),
+    text = element_text(family = 'Arial', size = 7),
     line = element_line(linewidth = 1*point_in_mm),
     geom = element_geom(
       linewidth = 1*point_in_mm,
@@ -82,7 +95,7 @@ nature_theme <- theme_linedraw() +
 
 ## Condensed version ----
 
-sge_plot_together_df <- or_df %>%
+sge_plot_together_df <- or_20260120_df %>%
   filter(
     str_ends(Dataset, 'unpublished'),
     Classifier == 'StandardizedClass',
@@ -145,6 +158,26 @@ print(sge_together_plot + nature_theme)
 if (SAVE)
   ggsave('Fig3_O1_plot.pdf', sge_together_plot + sge_theme, width = 12, height = 3)
 
+fig2j_v2_df <- sge_plot_together_df %>%
+  filter(
+    !(Gene %in% c('G6PD', 'CTCF')) # These genes do not have enough func abnormal data
+  )
+
+fig2j_v2_plot <- make_sge_plot(fig2j_v2_df, deframe(limits_df))
+print(fig2j_v2_plot + nature_theme)
+
+
+if (SAVE) {
+  ggsave(
+    'fig2j_v2.pdf',
+    fig2j_v2_plot + nature_theme,
+    width = 100,
+    height = 30,
+    units = 'mm',
+    family = 'Arial',
+    device = cairo_pdf
+  )
+}
 
 ## Broken out version ----
 
@@ -207,22 +240,11 @@ if (SAVE) {
 
 # Predictor calibrations --------------------------------------------------
 
-msh2_table <- or_df %>%
-  filter(
-    Dataset == 'REVEL',
-    Gene == 'MSH2'
-  ) %>%
-  mutate(
-    `Odds Ratio` = exp(LogOR),
-    OR_LI = exp(LogOR_LI),
-    OR_UI = exp(LogOR_UI)
-  )
-
 # Calibration comparison
 
 vep_levels = c(
   "≤ -4", "≤ -3", "≤ -2", "≤ -1",
-  "0",
+  #"0",
   "≥ +1", "≥ +2", "≥ +3", "≥ +4"
 )
 
@@ -231,7 +253,11 @@ predictor_plot_df <- or_df %>%
     Powered,
     #`Few samples` == FALSE,
     #`Cases with variants` > 0,
-    Classifier %in% c('Gene-aggregated calibration', 'Gene-specific calibration'),
+    Classifier %in% c(
+      'gene-specific',
+      #'domain aggregation',
+      'genome-wide aggregation'
+    ),
     Classification %in% vep_levels
   ) %>%
   mutate(
@@ -246,11 +272,27 @@ predictor_plot_df <- or_df %>%
     Classification = factor(
       Classification,
       levels = vep_levels
+    ),
+    Powered = LogOR_UI - LogOR_LI < 100, # Define powered tests
+    Classifier = Classifier %>% fct(
+        levels = c(
+          'gene-specific',
+          #'domain aggregation',
+          'genome-wide aggregation'
+        )
+      )
+    ,
+    Dataset = fct(
+      Dataset,
+      levels = c('REVEL', 'AlphaMissense', 'MutPred2')
     )
-  ) %>%
-  left_join(gene_groups_df)
+  )
 
-make_predictor_plot <- function(in_df, scales = 'free_x')
+make_predictor_plot <- function(
+  in_df,
+  scales = 'free_x',
+  legend_position = 'bottom'
+  )
   ggplot(
     in_df,
     aes(
@@ -267,8 +309,8 @@ make_predictor_plot <- function(in_df, scales = 'free_x')
     rows = vars(Dataset),
     scales = scales
   ) +
-  geom_pointrange(position = position_dodge(width=0.5)) +
   geom_errorbar(width = 0.5, position = position_dodge(width=0.5)) +
+  geom_pointrange(position = position_dodge(width=0.5), fill = 'white') +
   scale_x_log10(
     labels = scales::label_number(drop0trailing=TRUE),
     minor_breaks = NULL,
@@ -276,16 +318,19 @@ make_predictor_plot <- function(in_df, scales = 'free_x')
   ) +
   scale_shape_manual(
     values = c(
-      'Not significant at 95%' = 'circle open',
-      'Significant at 95%' = 'circle'),
+      'Not significant at 95%' = 21,
+      'Significant at 95%' = 16),
     breaks = c('Significant at 95%'),
-    guide = guide_legend(position = 'bottom')
+    guide = guide_legend(position = legend_position)
   ) +
   geom_vline(xintercept = 1, linetype = 'dashed') +
-  guides(color = guide_legend(
-    position = 'bottom',
-    override.aes = aes(shape = 'circle open')
-  ))
+  scale_color_manual(
+    values = color_mapping,
+    guide = guide_legend(
+      position = legend_position,
+      override.aes = aes(shape = 21, fill = 'white')
+    )
+  )
 
 predictor_plot <- make_predictor_plot(predictor_plot_df)
 
@@ -302,12 +347,13 @@ if (SAVE)
 
 figure_predictor_plot_df <- predictor_plot_df %>%
   filter(
-    Gene %in% c('BRCA1', 'BRCA2', 'MSH2', 'TP53'), # Have gene-specific calibration
+    Gene %in% c('BRCA1', 'BRCA2', 'MSH2', 'TP53', 'TSC2'), # Have gene-specific calibration
   )
 
 ## Final figure
 figure_predictor_plot <- figure_predictor_plot_df %>%
-  make_predictor_plot() + geom_blank(aes(x=deframe(
+  make_predictor_plot(legend_position = 'top') +
+  geom_blank(aes(x=deframe(
     predictor_plot_df %>%
       filter(Gene == 'MSH2') %>%
       summarize(max(OR_UI))
@@ -391,7 +437,7 @@ condensed_assay_plot_df <-
     Classifier == 'ExCALIBR',
     Dataset %in% c(
       'BAP1_Waters_2024',
-      'BARD1_unpublished',
+      'BARD1_IGVF',
       #'BRCA1_Adamovich_2022_Cisplatin',
       #'BRCA1_Adamovich_2022_HDR',
       'BRCA1_Findlay_2018',
@@ -401,19 +447,24 @@ condensed_assay_plot_df <-
       'KCNH2_Jiang_2022',
       'KCNQ4_Zheng_2022_current_homozygous',
       'MSH2_Jia_2021',
-      'PALB2_unpublished',
-      'RAD51C_Olvera-León_2024_z_score_D4_D14',
-      'RAD51D_unpublished',
-      'SCN5A',
+      'PALB2_IGVF',
+      'RAD51C_Olvera-León_2024',
+      'RAD51D_IGVF',
+      'SCN5A_Ma_2024',
       'TP53_Fayer_2021_meta',
       #'TP53_Boettcher_2019'
       #'TP53_Fortuno_2021_Kato_meta',
       #'TP53_Giacomelli_2018_combined_score'
-      'TSC2_rapgap_unpublished'
+      'TSC2_IGVF'
     ),
     Classification != "0"
   ) %>%
-  left_join(gene_groups_df)
+  left_join(gene_groups_df)# %>%
+  #mutate(
+  #  Disease = Disease %>% fct(
+  #    c("Cancer", "Metabolic", "Cardiovascular", "Hearing loss")
+  #  )
+  #)
 
 # Limits for most panels
 assay_plot_common_limits <- condensed_assay_plot_df %>% 
@@ -430,20 +481,21 @@ condensed_assay_plot <- ggplot(
     xmin=OR_LI,
     xmax=OR_UI,
     y=Classification,
-    shape = significance
+    shape = significance#,
+    #color = Classifier
   )
 ) +
   facet_nested_wrap(
     facets = vars(Disease, Gene),
     nrow = 3,
     scales = 'free_x',
-    labeller = as_labeller(
-      function(s) s %>% str_replace_all('_', ' ') %>% str_wrap(width=7)
-    ),
-    strip = strip_nested(text_x = element_text(margin = margin(0,0,0,0)))
+    #labeller = as_labeller(
+    #  function(s) s %>% str_replace_all('_', ' ') %>% str_wrap(width=7)
+    #),
+    #strip = strip_nested(text_x = element_text(margin = margin(0,0,0,0)))
   ) +
-  geom_pointrange(position = position_dodge(width=0.5)) +
   geom_errorbar(width = 0.5, position = position_dodge(width=0.5)) +
+  geom_pointrange(position = position_dodge(width=0.5), fill='white') +
   scale_x_log10(
     labels = scales::label_number(drop0trailing=TRUE),
     minor_breaks = NULL,
@@ -453,28 +505,42 @@ condensed_assay_plot <- ggplot(
     #limits = c('Not significant at 95%', 'Significant at 95%'),
     #minor_breaks = c('circle open'),
     values = c(
-      'Not significant at 95%' = 'circle open',
-      'Significant at 95%' = 'circle'),
+      'Not significant at 95%' = 21,
+      'Significant at 95%' = 16),
     breaks = c('Significant at 95%'),
     guide = 'none'
   ) +
-  geom_vline(xintercept = 1, linetype = 'dashed') +
-  geom_blank(aes(x = assay_plot_common_limits))
+  geom_vline(xintercept = 1, linetype = 'dashed') #+
+  #geom_blank(aes(x = assay_plot_common_limits)) +
+  #scale_color_manual(
+  #  values = 'black',
+  #  guide = guide_legend(
+  #    override.aes = aes(shape = 21, fill = 'white')
+  #  )
+  #)
 
 print(condensed_assay_plot)
 
 # Supplemental figure together --------------------------------------------
 
-fig_exd3 <- (figure_predictor_plot + nature_theme) /
-  (condensed_assay_plot + nature_theme) +
+fig_exd3 <- (condensed_assay_plot + nature_theme) +
+  #guide_area() +
+  (figure_predictor_plot + nature_theme) +
   plot_annotation(tag_levels='a') +
-  plot_layout(heights = c(4,9))
+  plot_layout(
+    design = c(
+      area(1,1,6,6),
+      #area(6,6),
+      area(7,1,9,6)
+    )#,
+    #guides = 'collect'
+  )
 
 print(fig_exd3)
 
 if(SAVE)
   ggsave(
-    'Extended Data Figure 3.pdf',
+    'Extended Data Figure AoU.pdf',
     fig_exd3,
     width = 160, # Max 183
     height = 247,
@@ -486,7 +552,7 @@ if(SAVE)
 points_levels = c(
   "≤ -16", "≤ -15", "≤ -14", "≤ -13", "≤ -12", "≤ -11", "≤ -10", "≤ -9",
   "≤ -8", "≤ -7", "≤ -6", "≤ -5", "≤ -4", "≤ -3", "≤ -2", "≤ -1",
-  "0",
+  #"0",
   "≥ +1", "≥ +2", "≥ +3", "≥ +4", "≥ +5", "≥ +6", "≥ +7", "≥ +8",
   "≥ +9", "≥ +10", "≥ +11", "≥ +12", "≥ +13", "≥ +14", "≥ +15", "≥ +16"
 )
@@ -494,12 +560,12 @@ points_levels = c(
 combined_points_plot_df <-
   or_df %>%
   filter(
-    Dataset == 'Combined points',
+    Dataset == 'Total points',
     Powered,
     #`Few samples` == FALSE #,
     #Classifier %in% c('Calibrated (2025-12-08)', 'StandardizedClass'),
-    `Cases with variants` > 0
-    #Classification %in% assay_classification_levels
+    `Cases with variants` > 0,
+    Classification %in% points_levels
   ) %>%
   mutate(
     `Odds Ratio` = exp(LogOR),
@@ -559,9 +625,9 @@ combined_points_condensed_plot_df <-
   combined_points_plot_df %>%
   filter(
     !(Gene %in% c(
-      "G6PD", "KCNH2", # Poor phenotype definition
+      "G6PD" #, "KCNH2", # Poor phenotype definition
       #"GCK", "KCNE1", "PTEN", "SCN5A", "TSC2" # No sig. intervals
-      "SGCB" # Erroneously kept in spite of no sig. intervals
+      #"SGCB" # Erroneously kept in spite of no sig. intervals
     )),
     Classification != "0"
   ) %>%
@@ -581,43 +647,53 @@ combined_points_condensed_plot <- ggplot(
     xmin = OR_LI,
     xmax = OR_UI,
     y = Classification,
-    shape = significance
+    fill = significance
   )
 ) +
   facet_nested(
-    cols = vars(D2, Gene),
+    cols = vars(D3, Gene),
     scales = 'free',
     labeller = as_labeller(
       function(s) s %>% str_replace_all('_', ' ') %>% str_wrap(width=7)
     )
   ) +
-  geom_pointrange(position = position_dodge(width=0.5)) +
   geom_errorbar(width = 0.5, position = position_dodge(width=0.5)) +
+  geom_pointrange(position = position_dodge(width=0.5), shape=21) +
   scale_x_log10(
     labels = scales::label_number(drop0trailing=TRUE),
     minor_breaks = NULL,
     guide = "axis_logticks",
   ) +
-  scale_shape_manual(
+  scale_fill_manual(
     #limits = c('Not significant at 95%', 'Significant at 95%'),
     #minor_breaks = c('circle open'),
     values = c(
-      'Not significant at 95%' = 'circle open',
-      'Significant at 95%' = 'circle'),
-    breaks = c('Significant at 95%'),
-    guide = guide_legend(position = 'bottom')
+      'Not significant at 95%' = 'white',
+      'Significant at 95%' = 'black'),
+    breaks = c('Significant at 95%')
   ) +
   geom_vline(xintercept = 1, linetype = 'dashed') +
   #geom_blank(aes(x = 0.25)) +
-  geom_blank(aes(x = 6)) +
-  guides(color = guide_legend(
-    position = 'bottom',
-    override.aes = aes(shape = 'circle open')
-  ))
+  geom_blank(aes(x = 6))
+
+cfig_theme <- nature_theme +
+  theme(
+    strip.text = element_text(
+      size = 6,
+      face = 'bold',
+      color = 'black',
+      margin = margin(0,0,0,0),
+      family = "Arial"
+    ),
+    strip.clip = 'off',
+    panel.spacing = unit(2, 'pt'),
+    axis.title.x = element_text(margin = margin(0,0,0,0)),
+    legend.position = 'bottom'
+  )
 
 print(
   combined_points_condensed_plot +
-    nature_theme +
+    cfig_theme +
     theme(axis.text.x = element_text(angle = 30))
 )
 #    assay_theme +
@@ -626,12 +702,18 @@ print(
 
 if(SAVE)
   ggsave(
-    'Fig 6B 2026-01-16.pdf',
-    combined_points_condensed_plot + nature_theme + theme(axis.text.x = element_text(angle = 45)),
+    'Fig 6B 2026-02-10.pdf',
+    combined_points_condensed_plot + nature_theme + theme(axis.text.x = element_text(angle = 60)),
     width = 183, # Max 183
     height = 90,
     units = 'mm',
     device = cairo_pdf)
+  ggsave(
+    'Fig 6B 2026-02-10.svg',
+    combined_points_condensed_plot + cfig_theme + theme(axis.text.x = element_text(angle = 60)),
+    width = 183, # Max 183
+    height = 75,
+    units = 'mm')
 
 ggsave(
   'Combined_points_plot.pdf',
@@ -660,7 +742,7 @@ View(pheno_df)
 library(writexl)
 
 sheets <- list(
-  "Figure 2j" = fig2j_df %>%
+  "Figure 2i" = fig2j_v2_df %>%
     select(
       Gene,
       Classification,
@@ -684,7 +766,7 @@ sheets <- list(
       LogOR_UI,
       `Wald p-value` = `p-value`
     ),
-  "Extended Data Figure 3a" = condensed_assay_plot_df %>%
+  "Extended Data Figure 2a" = condensed_assay_plot_df %>%
     select(
       Gene,
       Dataset,
@@ -697,7 +779,7 @@ sheets <- list(
       LogOR_UI,
       `Wald p-value` = `p-value`
     ),
-  "Extended Data Figure 3b" = figure_predictor_plot_df %>%
+  "Extended Data Figure 2b" = figure_predictor_plot_df %>%
     select(
       Gene,
       Predictor = Dataset,
