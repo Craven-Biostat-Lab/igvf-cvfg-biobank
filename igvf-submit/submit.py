@@ -18,6 +18,9 @@ common_properties = {
     "award": "HG012039",
 }
 
+# Reused+updated values
+tag_version = 'v1.1.0'
+
 # Pull gene list from submission file
 estimates_file_path = 'data/all-or-estimates_2026-02-13.csv.gz'
 ensg_list = pd.read_csv(estimates_file_path, usecols=['ENSG'])['ENSG'].drop_duplicates().to_list()
@@ -65,11 +68,12 @@ payloads = [
             "Python package for performing biobank validation of variant classifications "
             "in the All of Us Workbench."
     },
-    { # Checked 2026-02-13
+    { # Checked 2026-02-18
         Connection.PROFILE_KEY: 'software_version',
         'aliases': ["mark-craven:cvfg-aou-software-version-2026-02-13"],
-        'download_id': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/releases/tag/v1.1.0',
-        'version': 'v1.1.0',
+        'download_id': '7af8392d371713f92f824150fdf6584b258ecb3a',
+        'source_url': f'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/releases/tag/{tag_version}',
+        'version': tag_version,
         'software': 'mark-craven:cvfg-aou-software-v1'
     },
     { # Checked 2026-02-13
@@ -78,12 +82,13 @@ payloads = [
         'analysis_step': 'mark-craven:cvfg-aou-analysis-step-v1',
         'software_versions': ['mark-craven:cvfg-aou-software-version-2026-02-13']
     },
-    { # Checked 2025-12-08
+    { # Checked 2026-02-18
         Connection.PROFILE_KEY: 'workflow',
-        'aliases': ["mark-craven:cvfg-aou-workflow-v1"],
+        'aliases': ["mark-craven:cvfg-aou-workflow-2026-02-13"],
         'name': 'Biobank validation of variant classifications',
         'source_url': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank',
-        'analysis_step_versions': ['mark-craven:cvfg-aou-avalysis-step-version-v1']
+        'analysis_step_versions': ['mark-craven:cvfg-aou-avalysis-step-version-2026-02-13'],
+        'workflow_version': tag_version
     },
     { # Checked 2026-02-13
         Connection.PROFILE_KEY: 'tabular_file',
