@@ -15,6 +15,7 @@ The classes of variants come from a variaty of sources, including computational 
 - p-value - float - The two tailed p-value under the null hypothesis that the log odds ratio is zero.
 - LogOR_LI - float - The lowerbound of the two-sided 95% confidence interval of the log odds ratio estimate. 
 - LogOR_UI - float - The upperbound of the two-sided 95% confidence interval of the log odds ratio estimate. 
+- Cohort size - int - The number of participants in the full case/control cohort.
 - Cases with variants - int - The number of participants in the case cohort that carry a variant in the class, rounded up to a multiple of 20.
 - Controls with variants - int - The number of participants in the control cohort that carry a variant in the class, rounded up to a multiple of 20.
 - Cases without variants - int - The number of participants in the case cohort that do not carry a variant in the class, rounded up to a multiple of 20.
