@@ -54,3 +54,45 @@ class CohortLoader():
             )
         
         return result
+
+class CohortLoaderByConceptID():
+
+    def __init__(
+        self,
+        gene_concept_map,
+        ancestry_df,
+        demo_df,
+        condition_df
+    ):
+        """
+        Params:
+
+        gene_concept_map:
+            A mapping from a gene to a set of concept IDs that represent the case inclusion criteria.
+            Control exclusion criteria are assumed to be the same.
+        """
+
+        self.gene_conept_map = gene_concept_map
+        self.ancestry_df = ancestry_df
+        self.demo_df = demo_df
+        self.condition_df = condition_df
+        self.trichotomize_age = True
+
+    @cache
+    def gene_cohort(self, gene):
+        
+        concepts = self.gene_concept_map[gene]
+        cohort = self.condition_df.assign(
+            case = self.condition_df['condition_concept_id'].isin(concepts)
+        ).groupby('person_id')['case'].any().map({True:1, False:0}).to_frame(name='case')
+
+        result = cohort.join(self.ancestry_df).join(self.demo_df)
+        
+        if self.trichotomize_age:
+            result.sex_at_birth.where(
+                result.sex_at_birth.isin(['Male', 'Female']),
+                'Other',
+                inplace=True
+            )
+        
+        return result
