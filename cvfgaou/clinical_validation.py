@@ -87,6 +87,10 @@ def generate_fig1_variant_counts(srwes_split_df, functional_dataset, phenotype_d
     out_path = f"{output_bucket}/mt_fig1.tsv.bgz"
     mt_flattened.export(out_path)
     
+
+
+
+    
     ## make this a separate function that takes in the path to the exported file and processes it for plotting
     # Read it back in using pandas
     df_plot = pd.read_csv(out_path, sep="\t", compression="gzip") 
