@@ -72,7 +72,7 @@ class CohortLoaderByConceptID():
             Control exclusion criteria are assumed to be the same.
         """
 
-        self.gene_conept_map = gene_concept_map
+        self.gene_concept_map = gene_concept_map
         self.ancestry_df = ancestry_df
         self.demo_df = demo_df
         self.condition_df = condition_df
