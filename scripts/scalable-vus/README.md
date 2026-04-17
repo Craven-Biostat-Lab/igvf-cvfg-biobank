@@ -15,8 +15,16 @@ We note which notebooks make use of [Hail](https://hail.is/) and must be run in 
 The remaining notebooks may be run in a General Analysis envoronment to controll costs.
 
 1. `Prepare environment.ipynb` installs additional required python packages not including the `cvfgaou` package from this repository.
-1. ... TODO ...
-1. 
+1. `Per-gene VAT import.ipynb` extract per-gene Variant Annotation Tables which are required for checking variants splice scores. (*uses Hail*)
+1. `Build spliceAI person lists.ipynb` builds tables of persons with splice variants per gene (used to filter before computing ORs). (*uses Hail*)
+1. `Case pools with time to diagnosis.ipynb` builds tables of cases for each disease of interest.
+2. `Prepare control pools for loading` builds tables of controls for each disease of interest.
+1. `Build exposure tables for Predictors for Chen et al.ipynb` prorepares VEP carrier tables. (*uses Hail*)
+1. `OR estimates for predictors.ipynb` produces OR estimates for VEPs.
+1. `Carrier tables for specific scores from Tejura.ipynb` prepares carrier tables for assays. (*uses Hail*)
+1. `Carrier tables for combined scores from Tejura.ipynb` prepares carrier tables for combined scores. (*uses Hail*)
+1. `OR estimates.ipynb` produces OR estimates for assays and combined points.
+1. `Collate OR estimates.ipynb` collects all OR estimate data frames into one data frame.
 
 ### Generation of figures
 
