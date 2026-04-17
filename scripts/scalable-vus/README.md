@@ -12,9 +12,9 @@ We divide the process into two main parts: generation of the odds ratio estimate
 The process to generate the odds ratio estimate dataframe requires running a series of notebooks in sequence.
 The notebooks are located in the `notebooks` folder.
 We note which notebooks make use of [Hail](https://hail.is/) and must be run in a Hail Genomics Analysis environment.
-The remaining notebooks may be run in a General Analysis envoronment to controll costs.
+The remaining notebooks may be run in a General Analysis envoronment to control costs.
 
-1. `Prepare environment.ipynb` installs additional required python packages not including the `cvfgaou` package from this repository.
+1. `Prepare environment.ipynb` installs additional required python packages including the `cvfgaou` package from this repository.
 1. `Per-gene VAT import.ipynb` extract per-gene Variant Annotation Tables which are required for checking variants splice scores. (*uses Hail*)
 1. `Build spliceAI person lists.ipynb` builds tables of persons with splice variants per gene (used to filter before computing ORs). (*uses Hail*)
 1. `Case pools with time to diagnosis.ipynb` builds tables of cases for each disease of interest.
