@@ -1,0 +1,19 @@
+[project]
+name = "igvf-cvfg-biobank"
+description = 'Coding Variants Focus Group Biobank Validation anlyses'
+autors = [
+    { name="Yuriy Sverchkov", email="sverchkov@wisc.edu" }
+]
+license = "MIT"
+license-files = "LICENSE"
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank"
+Issues =  "https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/issues"
+
+[project.optional-dependencies]
+hail = ["hail"]
+
+[project.scripts]
+identify-carrier-groups = "cvfgaou.hailcmd:identify_carrier_groups [hail]"
