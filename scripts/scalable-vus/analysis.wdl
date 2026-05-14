@@ -7,7 +7,7 @@ task assemble_case_control_cohort {
         Array[File] control_pools
     }
     output {
-        case_control_cohort = "cohort.parquet"
+        File case_control_cohort = "cohort.parquet"
     }
 }
 
