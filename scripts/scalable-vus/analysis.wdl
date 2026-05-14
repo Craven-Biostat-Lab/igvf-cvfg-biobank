@@ -1,24 +1,18 @@
 version 1.0
 
-task assemble_case_control_cohort {
-    # Should the input here be SQL?
-    input {
-        Array[File] case_pools
-        Array[File] control_pools
-    }
-    output {
-        File case_control_cohort = "cohort.parquet"
-    }
-}
-
 task collect_participant_covariates {
     # Maybe should be direct query to AoU tables?
-    input {
-        File ancestry_pca
-        File demographics_df
-    }
+    #input {
+    #    File ancestry_pca
+    #    File demographics_df
+    #}
+
+    command <<<
+        collect-aou-covariates covariates.parquet
+    >>>
+
     output {
-        File covariates
+        File covariates = "covariates.parquet"
     }
 }
 
@@ -26,8 +20,13 @@ task identify_carrier_groups {
     input {
         File variant_groups
     }
+
+    command <<<
+        identify-carrier-groups --variants ~{variant_groups} --carriers carrier_groups.parquet
+    >>>
+
     output {
-        File carrier_groups
+        File carrier_groups = "carrier_groups.parquet"
     }
 }
 
@@ -39,7 +38,11 @@ task estimate_odds_ratios {
     }
 
     command <<<
-        python estimate_odds_ratios
+        python estimate-odds-ratios \
+            --cohort ~{case_control_cohort} \
+            --covariates ~{covariates} \
+            --carriers ~{carrier_groups} \
+            --odds-ratios odds_ratio_df.parquet
     >>>
 
     output {
@@ -49,23 +52,25 @@ task estimate_odds_ratios {
 
 workflow single_dataset_analysis {
     input {
-        
+        File case_control_cohort
+        File variant_groups
     }
-
-    call assemble_case_control_cohort {}
 
     call collect_participant_covariates {}
 
-    call identify_carrier_groups {}
+    call identify_carrier_groups {
+        input:
+            variant_groups = variant_groups
+    }
 
     call estimate_odds_ratios {
         input:
-            case_control_cohort = assemble_case_control_cohort.case_control_cohort,
+            case_control_cohort = case_control_cohort,
             covariates = collect_participant_covariates.covariates,
             carrier_groups = identify_carrier_groups.carrier_groups
     }
 
     output {
-        File odd_ratio_estimates = estimate_odds_ratios.odds_ratio_df
+        File odds_ratio_estimates = estimate_odds_ratios.odds_ratio_df
     }
 }

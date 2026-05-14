@@ -16,4 +16,6 @@ Issues =  "https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/issues"
 hail = ["hail"]
 
 [project.scripts]
+collect-aou-covariates = "cvfgaou.cmd:collect_aou_covariates"
 identify-carrier-groups = "cvfgaou.hailcmd:identify_carrier_groups [hail]"
+estimate-odds-ratios = "cvfgaou.cmd:estimate_odds_ratios"
