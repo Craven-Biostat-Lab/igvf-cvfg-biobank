@@ -1,6 +1,7 @@
 """CLI that don't require optional packages"""
 
 from argparse import ArgumentParser
+from cvfgaou.odds import estimate_logOR
 import pandas as pd
 import os
 import ast
@@ -97,4 +98,28 @@ def estimate_odds_ratios(args=None):
 
         args = parser.parse_args()
     
-    # WIP
+    # Open input frames
+    carriers_df = pd.read_parquet(args.carriers)
+
+    # Grab cohort, join to covariates
+    # Loop through carriers columns, join to dataframe
+    # Compute ORs (each carrier column becomes an OR row)
+    # Build ouptut table
+
+    df = pd.read_parquet(args.cohort).merge(
+        pd.read_parquet(args.covariates),
+        left_index=True,
+        right_index=True
+    )
+
+    pd.DataFrame.from_dict(
+        {
+            col:
+                estimate_logOR(
+                    carriers_df[carriers_df[col]].index.to_series,
+                    df
+                )
+            for col in carriers_df.columns
+        },
+        orient='index'
+    ).to_parquet(args.odds_ratios)
