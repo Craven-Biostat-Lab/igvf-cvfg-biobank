@@ -22,11 +22,16 @@ task identify_carrier_groups {
     }
 
     command <<<
+        pip install git+https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank.git@cromwell[hail]
         identify-carrier-groups --variants ~{variant_groups} --carriers carrier_groups.parquet
     >>>
 
     output {
         File carrier_groups = "carrier_groups.parquet"
+    }
+
+    runtime {
+        docker: "databricksruntime/standard:latest"
     }
 }
 
