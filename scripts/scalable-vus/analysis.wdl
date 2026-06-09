@@ -31,7 +31,7 @@ task identify_carrier_groups {
     }
 
     runtime {
-        docker: "databricksruntime/standard:latest"
+        docker: "spark:python3"
     }
 }
 
