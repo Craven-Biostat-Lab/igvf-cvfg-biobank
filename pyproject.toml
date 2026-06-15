@@ -1,7 +1,7 @@
 [project]
 name = "igvf-cvfg-biobank"
 description = 'Coding Variants Focus Group Biobank Validation anlyses'
-autors = [
+authors = [
     { name="Yuriy Sverchkov", email="sverchkov@wisc.edu" }
 ]
 license = "MIT"
