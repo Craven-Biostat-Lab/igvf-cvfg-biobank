@@ -9,7 +9,6 @@ def identify_carrier_groups(args=None):
 
     if args is None:
         parser = ArgumentParser(
-            prog="Identify Carrier Groups",
             description="Given a table of variants with scores and a WGS matrix, extracts the participants that have the annotated variants."
         )
         parser.add_argument('--wgs', required=True)
