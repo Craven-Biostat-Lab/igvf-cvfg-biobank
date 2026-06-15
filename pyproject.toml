@@ -5,7 +5,7 @@ autors = [
     { name="Yuriy Sverchkov", email="sverchkov@wisc.edu" }
 ]
 license = "MIT"
-license-files = "LICENSE"
+license-files = ["LICENSE"]
 dynamic = ["version"]
 
 [project.urls]
