@@ -52,7 +52,13 @@ def estimate_logOR(exposure_series, cohort_df, alpha=0.05, variants_series=None)
     return result_dict
 
 
-def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, clinvar_class_map):
+def collect_variant_stats(
+    exposure_series,
+    cohort_df,
+    variants_series,
+    af_map=None,
+    clinvar_class_map=None
+):
     """Collect variant statistics
     
     exposure_series: A series of person IDs
@@ -64,11 +70,13 @@ def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, c
         A series of lists of strings identifying variants for each person ID.
         Variant strings are formatted contig:pos:ref>alt.
 
-    af_map: A mapping from variant string to Allele Frequency
+    af_map: A mapping from variant string to Allele Frequency (optional). AF statistics
+        will be collected if this is provided.
         
     clinvar_class_map: A mapping from variant string (formatted contig:pos:ref>alt)
         to Clinvar significance. The set of variants in the keys of this map is
         assumed to be the set of all variants in the "exposure" variant class.
+        (Optional) ClinVar statistics will be collected if this is provided.
             
     Returns dictionary of variant statistics
     """
@@ -89,26 +97,29 @@ def collect_variant_stats(exposure_series, cohort_df, variants_series, af_map, c
     overlap_variants = case_variants & control_variants
     case_only_variants = case_variants - overlap_variants
     control_only_variants = control_variants - overlap_variants
-    
-    result_dict['Case variant min AF'] = min(af_map[v] for v in case_variants) if case_variants else None
-    result_dict['Control variant min AF'] = min(af_map[v] for v in control_variants) if control_variants else None
-    result_dict['Case variant max AF'] = max(af_map[v] for v in case_variants) if case_variants else None
-    result_dict['Control variant max AF'] = max(af_map[v] for v in control_variants) if control_variants else None
+
     result_dict['Case only variant count'] = len(case_only_variants)
     result_dict['Control only variant count'] = len(control_only_variants)
     result_dict['Overlap variant count'] = len(overlap_variants)
+    result_dict['Variants in cohort'] = len(total_variants)
 
-    # Variant count breakdowns, in class vs in AoU, and by ClinVar class
-    clinvar_df = pd.Series(clinvar_class_map).to_frame(name='ClinVar')
-    clinvar_df['Cohort'] = clinvar_df.index.isin(total_variants)
+    if af_map is not None:
+        result_dict['Case variant min AF'] = min(af_map[v] for v in case_variants) if case_variants else None
+        result_dict['Control variant min AF'] = min(af_map[v] for v in control_variants) if control_variants else None
+        result_dict['Case variant max AF'] = max(af_map[v] for v in case_variants) if case_variants else None
+        result_dict['Control variant max AF'] = max(af_map[v] for v in control_variants) if control_variants else None
 
-    result_dict['Variants in class'] = clinvar_df['ClinVar'].count()
-    result_dict['Variants in cohort'] = clinvar_df['Cohort'].sum()
+    if clinvar_class_map is not None:
+        # Variant count breakdowns, in class vs in AoU, and by ClinVar class
+        clinvar_df = pd.Series(clinvar_class_map).to_frame(name='ClinVar')
+        clinvar_df['Cohort'] = clinvar_df.index.isin(total_variants)
 
-    for clinvar_class, count in clinvar_df['ClinVar'].value_counts().items():
-        result_dict[f'Class ClinVar {clinvar_class}'] = count
-    
-    for clinvar_class, count in clinvar_df.loc[clinvar_df['Cohort'], 'ClinVar'].value_counts().items():
-        result_dict[f'Cohort ClinVar {clinvar_class}'] = count
+        result_dict['Variants in class'] = clinvar_df['ClinVar'].count()
+
+        for clinvar_class, count in clinvar_df['ClinVar'].value_counts().items():
+            result_dict[f'Class ClinVar {clinvar_class}'] = count
+        
+        for clinvar_class, count in clinvar_df.loc[clinvar_df['Cohort'], 'ClinVar'].value_counts().items():
+            result_dict[f'Cohort ClinVar {clinvar_class}'] = count
     
     return result_dict
