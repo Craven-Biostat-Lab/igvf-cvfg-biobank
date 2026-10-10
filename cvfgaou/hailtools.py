@@ -214,3 +214,28 @@ def get_exposure_package(
         clinvar_df=clinvar_df.assign(**metadata_dict)
 
     return exposure_df, af_map, clinvar_df
+
+
+def get_variant_counts(
+    variant_filtered_mt,
+    cohort_ht
+):
+    """Get counts of variants in cohort and in cases/controls
+    
+    variant_filtered_mt: A MatrixTable filtered to the variants of interest
+    cohort_ht: A Hail Table with a 'case' column indicating case/control status
+    """
+
+    cohort_mt = variant_filtered_mt.semi_join_cols(cohort_ht)
+    cohort_mt = cohort_mt.annotate_cols(case=cohort_ht.index(cohort_mt.s).case)
+    cohort_mt = cohort_mt.annotate_rows(
+        in_cases=hl.agg.any(cohort_mt.GT.is_non_ref() & (cohort_mt.case == 1)),
+        in_controls=hl.agg.any(cohort_mt.GT.is_non_ref() & (cohort_mt.case == 0))
+    )
+    return cohort_mt.aggregate_rows(hl.dict([
+        ('Variants in WGS MT', hl.agg.count()),
+        ('Variants in cohort', hl.agg.count_where(cohort_mt.in_cases | cohort_mt.in_controls)),
+        ('Case only variant count', hl.agg.count_where(cohort_mt.in_cases & ~cohort_mt.in_controls)),
+        ('Control only variant count', hl.agg.count_where(~cohort_mt.in_cases & cohort_mt.in_controls)),
+        ('Overlap variant count', hl.agg.count_where(cohort_mt.in_cases & cohort_mt.in_controls))
+    ]))
