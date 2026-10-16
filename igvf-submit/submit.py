@@ -19,37 +19,38 @@ common_properties = {
 }
 
 # Reused+updated values
-tag_version = 'v1.1.0'
+tag_version = 'v1.2.0'
 
 # Pull gene list from submission file
-estimates_file_path = 'data/all-or-estimates_2026-02-13.csv.gz'
-ensg_list = pd.read_csv(estimates_file_path, usecols=['ENSG'])['ENSG'].drop_duplicates().to_list()
+estimates_file_path = 'data/AoU-OR-estimates-for-IGVF_2026-10-12.tsv.gz'
+ensg_list = pd.read_table(estimates_file_path, usecols=['ENSG'])['ENSG'].drop_duplicates().to_list()
 ensg_list = [s.split('.')[0] for s in ensg_list]
 
 payloads = [
-    { # Checked 2026-01-02
+    { # Checked 2026-10-13
         Connection.PROFILE_KEY: 'document',
-        'aliases': ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
+        'aliases': ["mark-craven:cvfg-aou-or-estimates-documentation-v2"],
         'document_type': 'file format specification',
         'description': 'File format specification for Biobank validation OR estimates.',
         'attachment': {'path': 'OR Estimates File Description.pdf'}
     },
-    { # Checked 2026-02-13
+    { # Checked 2026-10-13
         Connection.PROFILE_KEY: 'prediction_set',
-        'aliases': ["mark-craven:cvfg-aou-or-estimates-fileset-v1"],
+        'aliases': ["mark-craven:cvfg-aou-or-estimates-fileset-v2"],
         'description':
             'Statistical estimates of the ratio of odds of condition occurrence given that '
             'a person carries at least one of the variants in a given class.',
         'donors': ["igvf:virtual_human_donor"],
         'input_file_sets': [
-            "IGVFDS4364ECDX", # Calibration sets
+            "IGVFDS4364ECDX", # ExCALIBR sets
+            "IGVFDS2974IPZB", # VEP sets
             "IGVFDS4011IBUI" # Assay variant sets
         ],
-        'file_set_type': 'functional effect',
+        'file_set_type': 'coding variants pathogenicity',
         'scope': 'genes',
         'small_scale_gene_list': ensg_list
     },
-    { # Checked 2026-01-02
+    { # Checked 2026-10-13
         Connection.PROFILE_KEY: 'analysis_step',
         'aliases': ["mark-craven:cvfg-aou-analysis-step-v1"],
         "title": 'Biobank validation of variant classifications',
@@ -70,41 +71,41 @@ payloads = [
     },
     { # Checked 2026-02-18
         Connection.PROFILE_KEY: 'software_version',
-        'aliases': ["mark-craven:cvfg-aou-software-version-2026-02-13"],
-        'download_id': '7af8392d371713f92f824150fdf6584b258ecb3a',
+        'aliases': ["mark-craven:cvfg-aou-software-version-2026-10-13"],
         'source_url': f'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank/releases/tag/{tag_version}',
         'version': tag_version,
         'software': 'mark-craven:cvfg-aou-software-v1'
     },
     { # Checked 2026-02-13
         Connection.PROFILE_KEY: 'analysis_step_version',
-        'aliases': ['mark-craven:cvfg-aou-avalysis-step-version-2026-02-13'],
+        'aliases': ['mark-craven:cvfg-aou-avalysis-step-version-2026-10-13'],
         'analysis_step': 'mark-craven:cvfg-aou-analysis-step-v1',
-        'software_versions': ['mark-craven:cvfg-aou-software-version-2026-02-13']
+        'software_versions': ['mark-craven:cvfg-aou-software-version-2026-10-13']
     },
     { # Checked 2026-02-18
         Connection.PROFILE_KEY: 'workflow',
-        'aliases': ["mark-craven:cvfg-aou-workflow-2026-02-13"],
+        'aliases': ["mark-craven:cvfg-aou-workflow-2026-10-13"],
         'name': 'Biobank validation of variant classifications',
         'source_url': 'https://github.com/Craven-Biostat-Lab/igvf-cvfg-biobank',
-        'analysis_step_versions': ['mark-craven:cvfg-aou-avalysis-step-version-2026-02-13'],
+        'analysis_step_versions': ['mark-craven:cvfg-aou-avalysis-step-version-2026-10-13'],
         'workflow_version': tag_version
     },
     { # Checked 2026-02-13
         Connection.PROFILE_KEY: 'tabular_file',
-        "aliases": ["mark-craven:cvfg-aou-or-estimates-v3"],
+        "aliases": ["mark-craven:cvfg-aou-or-estimates-v4"],
         "description": "Statistical estimates of the ratio of odds of condition occurrence given that a person carries at least one of the variants in a given class.",
-        "analysis_step_version": "mark-craven:cvfg-aou-avalysis-step-version-2026-02-13",
+        "analysis_step_version": "mark-craven:cvfg-aou-avalysis-step-version-2026-10-13",
         "content_type": "pathogenicity validation",
         "controlled_access": False,
         "derived_from": [
-            "IGVFFI1443TQDN", # Aggregated calibrations (has predictor and combined points)
-            "IGVFFI2521UGYG", # Assay variant scores table (has author scores)
-            "IGVFFI7610PCPU" # Assay variant calibrations
+            "IGVFFI2019NGNQ", # ExCALIBR per variant effect measurement evidence points
+            "IGVFFI0508JWYH", # ExCALIBR per variant evidence points
+            "IGVFFI1328FVZD", # Gene- and domain-specific predictive per variant evidence points
+            "IGVFFI1582COBW"  # Integrated variant effect dataset
         ],
-        "file_format": "csv",
-        "file_format_specifications": ["mark-craven:cvfg-aou-or-estimates-documentation-v1"],
-        "file_set": "mark-craven:cvfg-aou-or-estimates-fileset-v1",
+        "file_format": "tsv",
+        "file_format_specifications": ["mark-craven:cvfg-aou-or-estimates-documentation-v2"],
+        "file_set": "mark-craven:cvfg-aou-or-estimates-fileset-v2",
         "submitted_file_name": estimates_file_path
     },
 ]

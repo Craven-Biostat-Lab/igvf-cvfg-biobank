@@ -2,54 +2,36 @@
 
 This file describes the output format for our main output file, which contains statistical estimates of the ratio of odds of condition occurrence given that a person carries at least onne of the variants in a given class. See the methods section for more details.
 
-The classes of variants come from a variaty of sources, including computational variant effect prediction, functional assays, and curated datasets. Each row in this table corresponds to a different variant class, and some of these variant classes overlap.
+The groups of variants come from a variaty of sources, including computational variant effect prediction, functional assays, and curated datasets. Each row in this table corresponds to a different variant group, and some of these variant groups overlap.
 
 ## Column definition
 
-- Dataset - string - The dataset on which the variant classification is based. This can be the name of a VEP (e.g. "AlphaMissense") or a functional study (e.g. "BRCA1_Findlay_2018").
-- Gene Symbol - string - The gene symbol of the gene evaluated, (e.g. "BRCA1").
-- ENSG - string - The Ensembl Gene ID
-- Classifier - string - The method by which variant classes are determined, (e.g. "ExCALIBR" or "Gene-specific calibration")
-- Classification - string - The classification that defines variants in the evaluated class, e.g. "≥ +1"
-- LogOR - float - The point estimate of the natural log of the odds ratio for the variant class (see Methods for details).
-- p-value - float - The two tailed p-value under the null hypothesis that the log odds ratio is zero.
-- LogOR_LI - float - The lowerbound of the two-sided 95% confidence interval of the log odds ratio estimate. 
-- LogOR_UI - float - The upperbound of the two-sided 95% confidence interval of the log odds ratio estimate. 
-- Cohort size - int - The number of participants in the full case/control cohort.
-- Cases with variants - int - The number of participants in the case cohort that carry a variant in the class, rounded up to a multiple of 20.
-- Controls with variants - int - The number of participants in the control cohort that carry a variant in the class, rounded up to a multiple of 20.
-- Cases without variants - int - The number of participants in the case cohort that do not carry a variant in the class, rounded up to a multiple of 20.
-- Controls without variants - int - The number of participants in the control cohort that do not carry a variant in the class, rounded up to a multiple of 20.
-- Variants per case - float - The mean number of variants in the class that a participant in the case cohort carries. 
-- Variants per control - float - The mean number of variants in the class that a participant in the case cohort carries.
-- Case variant min AF - float - The minimum allele frequency seen in a class variant in a participant in the case cohort.
-- Control variant min AF - float - The minimum allele frequency seen in a class variant in a participant in the control cohort.
-- Case variant max AF - float - The maximum allele frequency seen in a class variant in a participant in the case cohort.
-- Control variant max AF - float - The maximum allele frequency seen in a class variant in a participant in the control cohort.
-- Case only variant count - int - The number of variants from the variant class that appear only in the case cohort.
-- Control only variant count - int - The number of variants from the variant class that appear only in the control cohort.
-- Overlap variant count - int - The number of variants from the variant class that appear in both the case cohort and the control cohort.
-- Variants in class - int - The number of variants that the class of interest contains.
-- Variants in cohort - int - The number of variants from the variant class that were actually observed in the biobank cohort.
-- Class ClinVar Pathogenic - int - The number of variants from the class that are annotated as Pathogenic in CinVar.
-- Class ClinVar Likely pathogenic - int - The number of variants from the class that are annotated as Likely pathogenic in CinVar.
-- Class ClinVar Likely benign - int - The number of variants from the class that are annotated as Likely benign in ClinVar.
-- Class ClinVar Benign - int - The number of variants from the class that are annotated as Benign in CinVar.
-- Class ClinVar Conflicting - int - The number of variants from the class that are annotated as having conflicting evidence in CinVar.
-- Class ClinVar Uncertain significance - int - The number of variants from the class that are annotated as variants of uncertain significance in ClinVar.
-- Class ClinVar Other / not in ClinVar - int - The number of variants from the class that don't have a ClinVar annotation or don't fit into one of the other ClinVar categories above.
-- Cohort ClinVar Pathogenic - int - The number of variants from the the variant class that were actually observed in the biobank cohort that are annotated as Pathogenic in CinVar.
-- Cohort ClinVar Likely pathogenic - int - The number of variants from the variant class that were actually observed in the biobank cohort that are annotated as Likely pathogenic in CinVar.
-- Cohort ClinVar Likely benign - int - The number of variants from the variant class that were actually observed in the biobank cohort that are annotated as Likely benign in ClinVar.
-- Class ClinVar Benign - int - The number of variants from the variant class that were actually observed in the biobank cohort that are annotated as Benign in CinVar.
-- Class ClinVar Conflicting - int - The number of variants from the variant class that were actually observed in the biobank cohort that are annotated as having conflicting evidence in CinVar.
-- Class ClinVar Uncertain significance - int - The number of variants from the variant class that were actually observed in the biobank cohort that are annotated as variants of uncertain significance in ClinVar.
-- Class ClinVar Other / not in ClinVar - int - The number of variants from the variant class that were actually observed in the biobank cohort that don't have a ClinVar annotation or don't fit into one of the other ClinVar categories above.
-- Case inclusion phenotypes - list of string - The conditions the presence of which include a participant in the case cohort.
-- Control exclusion phenotypes - list of string - The conditions the presence of which exclude a participant from the control cohort.
-- SpliceAI filter max - float - If present, participants carrying splice variants in the gene were excluded from the analysis. The value in this column is the SpliceAI score threshold used for determining this exclusion criterion.
-- Data Version - string - Identifies relevant version of functional data, if applicable.
-- AoU CDR - string - The version of the All of Us data release used.
+- **Dataset/Predictor** (*string*) The experimental assay dataset or the name of the variant effect predictor used to define the variant group
+- **Gene** (*string*) Official HGNC symbol for the gene analyzed
+- **Grouping/Calibration** (*string*) The method used to define the variant group; either functional class for functional categories or calibration method for calibrated evidence point ranges
+- **Consequence** (*string*) The molecular consequence to which the variant group has been filtered
+- **Group/Range** (*string*) The functional class or calibrated evidence point range defining the variant group
+- **Odds Ratio** (*float*) The point estimate of the odds ratio computed for association between the group of variants and the gene-associated phenotype; missing if there are 20 or fewer carrier cases or carrier controls
+- **OR_LI** (*float*) The lower bound of the (unadjusted) 95% confidence interval of the odds ratio estimate; missing if there are 20 or fewer carrier cases or carrier controls
+- **OR_UI** (*float*) The upper bound of the (unadjusted) 95% confidence interval of the odds ratio estimate; missing if there are 20 or fewer carrier cases or carrier controls
+- **LogOR** (*float*) The natural log of the point estimate of the odds ratio; missing if there are 20 or fewer carrier cases or carrier controls
+- **LogOR_LI** (*float*) The lower bound of the (unadjusted) 95% confidence interval of the natural log of the odds ratio estimate; missing if there are 20 or fewer carrier cases or carrier controls
+- **LogOR_UI** (*float*) The upper bound of the (unadjusted) 95% confidence interval of the natural log of the odds ratio estimate; missing if there are 20 or fewer carrier cases or carrier controls
+- **Wald p-value** (*float*) The Wald test p-value for the OR estimate.
+- **p-value (Holm adjusted)** (*float*) The p-value adjusted for multiple comparisons using the Holm-Bonferroni method
+- **Cohort size** (*integer*) The total size of the cohort (cases and controls meeting phenotyping criteria)
+- **Total cases** (*integer*) The number cases in the cohort
+- **Total controls** (*integer*) The number of controls in the cohort
+- **Carrier cases** (*string*) The number of cases with at least one variant from the variant group; displayed as "≤ 20" if the count is greater than 0 but no greater than 20
+- **Carrier controls** (*string*) The number of controls with at least one variant from the variant group; displayed as "≤ 20" if the count is greater than 0 but no greater than 20
+- **Variants in group** (*integer*) The number of distinct nucleotide variants in the group
+- **Case only variant count** (*integer*) The number of distinct nucleotide variants from the group that appear only in cases
+- **Control only variant count** (*integer*) The number of distinct nucleotide variants from the group that appear only in controls
+- **Overlap variant count** (*integer*) The number of distinct nucleotide variants from the group that appear both in cases and in controls
+- **Variants in cohort** (*integer*) The total number of distinct nucleotide variants from the group that appear in the cohort
+- **ENSG** (*string*) The Ensembl Gene ID
+- **Case inclusion phenotypes** (*list of strings*) The phenotypes the presence of which include a participant in the case cohort
+- **Control exclusion phenotypes** (*list of strings*) The phenotypes the presence of which exclude a participant from the control cohort
 
 ## Methods
 
