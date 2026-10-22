@@ -37,15 +37,15 @@ We note which notebooks make use of [Hail](https://hail.is/) and should be run i
 7. `LDLR get phenotypes` Produces a table of LDLR-related phenotypes used in [Tabet et al. (2026)](https://doi.org/10.1126/science.ady7186); this is an R notebook adapted from code provided by the authors of that paper.
 8. `LDLR cohort` Creates a case-control assignment from the phenotypes defined by the previous notebook.
 9. `Carrier definition Functional` **Run in dataproc** Creates carrier sets for variants grouped by functional class.
-10. `OR calculation Functional`
-11. `Detailed variant statistics functional`
-12. `OR analysis ExCALIBR`
-13. `Detailed variant statistics ExCALIBR`
-14. `Per-gene VAT import`
-15. `Annotate VEPs`
-16. `OR analysis VEP`
-17. `Detailed variant statistics VEP`
-18. `Filter for combined points`
-15. `OR analysis total-points`
-18. `Detailed variant statistics total-points`
-20. `OR postprocessing`
+10. `OR calculation Functional` Computes ORs for variants grouped by functional class.
+11. `Detailed variant statistics functional` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by functional class.
+12. `OR analysis ExCALIBR` **Run in dataproc** Performs OR analysis for variant groups defined by ExCALIBR-calibrated evidence point ranges.
+13. `Detailed variant statistics ExCALIBR` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by ExCALIBR-calibrated evidence point ranges.
+14. `Per-gene VAT import` **Run in dataproc** Loads a subset of the AoU Variant Annotation Table (VAT) into files split up per gene.
+15. `Annotate VEPs` Attaches molecular consequence from the VAT to the calibrated predictor table
+16. `OR analysis VEP` **Run in dataproc** Performs OR analysis for variant groups defined by calibrated predictor evidence point ranges.
+17. `Detailed variant statistics VEP` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by calibrated predictor evidence point ranges.
+18. `Filter for combined points` Filters the integrated variant effect table down to one-row-per-nucleotide-change.
+15. `OR analysis total-points` **Run in dataproc** Performs OR analysis for variant groups defined by combined evidence points from ExCALIBR-calibrated assays and calibrated REVEL evidence point ranges.
+18. `Detailed variant statistics total-points` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by calibrated predictor evidence point ranges.
+20. `OR postprocessing` Combines OR estimates and variant statistics into one table, performs multiple-comparison adjustment, generates censored table for export.
