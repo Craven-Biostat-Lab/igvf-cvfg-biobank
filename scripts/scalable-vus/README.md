@@ -22,6 +22,8 @@ These instructions are specific to the Verily workbench, as of this writing, tha
 2. Add the *All of Us* Controlled Tier v8 curated data repository to the workbench resources.
 3. Add this repository to the workbench repositories with the name `igvf-cvfg-biobank` (this will automatically clone this repository to `~/repos/igvf-cvfg-biobank` in the computational environment; this path is used in scripts)
 4. Create a write-accessible cloud storage bucket for saving analysis results. We use the resource ID `scalable-vus-validation` (this automatically mounts the bucket to `~/workspace/scalable-vus-validation` in the computational envoronment; this path is used in scripts)
+5. Place the above-mentioned `integrated_variant_effect_dataset_analysis_excalibr_assays_oddspath_models.csv.gz` into a new folder `~/workspace/scalable-vus-validation/variant_tables/`
+6. (Optionally) place `IGVFFI1328FVZD.csv.gz` into `~/workspace/scalable-vus-validation/variant_tables/`. The notebook `Annotate VEPs` contains code to attempt to download it if it is not present.
 
 ### Generation of the odds ratio estimate dataframe
 
