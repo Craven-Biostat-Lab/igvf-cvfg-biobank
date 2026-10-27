@@ -30,25 +30,24 @@ These instructions are specific to the Verily workbench, as of this writing, tha
 The process to generate the odds ratio estimate dataframe requires running a series of notebooks in sequence.
 We note which notebooks make use of [Hail](https://hail.is/) and should be run in a `JupyterLab Spark cluster for AoU` app environment with Hail installed (hereafter referred to as the "dataproc" environment). Unless indicated otherwise, a notebooks may be run in a `AoU Jupyter` app environment (hereafter referred to as the "standard" environment) to control costs or the dataproc environment. Notebooks should be run in the following order:
 
-1. `Setup standard environment` **Only run this notebook in the standard environment.** Installs necessary python packages in the standard environment. 
-2. `Setup dataproc environment` **Run in dataproc.** Installs necessary python packages in the dataproc environment.
-3. `Case pools with time to diagnosis` Collects phenotype-based case pools into tabular files for all conditions except those related to long QT and LDLR.
-4. `Prepare control pools for loading` Collects phenotype-based control pools into tabular files for all conditions except those related to long QT and LDLR.
-5. `Make long QT case and control pools` Collects case and control pools for long QT and and abnormal QT interval.
-6. `Assemble gene cohorts` Asembles case-control cohorts for each of the genes we analyze (except for LDLR) from the phenotype-level case and control pools.
-7. `LDLR get phenotypes` Produces a table of LDLR-related phenotypes used in [Tabet et al. (2026)](https://doi.org/10.1126/science.ady7186); this is an R notebook adapted from code provided by the authors of that paper.
-8. `LDLR cohort` Creates a case-control assignment from the phenotypes defined by the previous notebook.
-9. `Load common tables` Saves a table of participant demographic information and a table of the ancestry PCA components.
-10. `Carrier definition Functional` **Run in dataproc** Creates carrier sets for variants grouped by functional class.
-11. `OR calculation Functional` Computes ORs for variants grouped by functional class.
-12. `Detailed variant statistics functional` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by functional class.
-13. `OR analysis ExCALIBR` **Run in dataproc** Performs OR analysis for variant groups defined by ExCALIBR-calibrated evidence point ranges.
-14. `Detailed variant statistics ExCALIBR` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by ExCALIBR-calibrated evidence point ranges.
-15. `Per-gene VAT import` **Run in dataproc** Loads a subset of the AoU Variant Annotation Table (VAT) into files split up per gene.
-16. `Annotate VEPs` Attaches molecular consequence from the VAT to the calibrated predictor table
-17. `OR analysis VEP` **Run in dataproc** Performs OR analysis for variant groups defined by calibrated predictor evidence point ranges.
-18. `Detailed variant statistics VEP` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by calibrated predictor evidence point ranges.
-19. `Filter for combined points` Filters the integrated variant effect table down to one-row-per-nucleotide-change.
-15. `OR analysis total-points` **Run in dataproc** Performs OR analysis for variant groups defined by combined evidence points from ExCALIBR-calibrated assays and calibrated REVEL evidence point ranges.
-18. `Detailed variant statistics total-points` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by calibrated predictor evidence point ranges.
-20. `OR postprocessing` Combines OR estimates and variant statistics into one table, performs multiple-comparison adjustment, generates censored table for export.
+1. `Setup environment` Run once in each newly created environment. Installs necessary python packages in the standard environment. 
+2. `Case pools with time to diagnosis` Collects phenotype-based case pools into tabular files for all conditions except those related to long QT and LDLR.
+3. `Prepare control pools for loading` Collects phenotype-based control pools into tabular files for all conditions except those related to long QT and LDLR.
+4. `Make long QT case and control pools` Collects case and control pools for long QT and and abnormal QT interval.
+5. `Assemble gene cohorts` Asembles case-control cohorts for each of the genes we analyze (except for LDLR) from the phenotype-level case and control pools.
+6. `LDLR get phenotypes` Produces a table of LDLR-related phenotypes used in [Tabet et al. (2026)](https://doi.org/10.1126/science.ady7186); this is an R notebook adapted from code provided by the authors of that paper.
+7. `LDLR cohort` Creates a case-control assignment from the phenotypes defined by the previous notebook.
+8. `Load common tables` Saves a table of participant demographic information and a table of the ancestry PCA components.
+9. `Carrier definition Functional` **Run in dataproc** Creates carrier sets for variants grouped by functional class.
+10. `OR calculation Functional` Computes ORs for variants grouped by functional class.
+11. `Detailed variant statistics functional` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by functional class.
+12. `OR analysis ExCALIBR` **Run in dataproc** Performs OR analysis for variant groups defined by ExCALIBR-calibrated evidence point ranges.
+13. `Detailed variant statistics ExCALIBR` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by ExCALIBR-calibrated evidence point ranges.
+14. `Per-gene VAT import` **Run in dataproc** Loads a subset of the AoU Variant Annotation Table (VAT) into files split up per gene.
+15. `Annotate VEPs` Attaches molecular consequence from the VAT to the calibrated predictor table
+16. `OR analysis VEP` **Run in dataproc** Performs OR analysis for variant groups defined by calibrated predictor evidence point ranges.
+17. `Detailed variant statistics VEP` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by calibrated predictor evidence point ranges.
+18. `Filter for combined points` Filters the integrated variant effect table down to one-row-per-nucleotide-change.
+19. `OR analysis total-points` **Run in dataproc** Performs OR analysis for variant groups defined by combined evidence points from ExCALIBR-calibrated assays and calibrated REVEL evidence point ranges.
+20. `Detailed variant statistics total-points` **Run in dataproc** Counts variants in carrier cases/controls for variant groups defined by calibrated predictor evidence point ranges.
+21. `OR postprocessing` Combines OR estimates and variant statistics into one table, performs multiple-comparison adjustment, generates censored table for export.
