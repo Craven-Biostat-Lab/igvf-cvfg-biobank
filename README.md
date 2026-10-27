@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/924894811.svg)](https://doi.org/10.5281/zenodo.23700579)
+
 # igvf-cvfg-biobank
 This repository contains scripts and tools for performing biobank validation of variant classifications in the All of Us Workbench.
 
